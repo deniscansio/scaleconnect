@@ -1,21 +1,42 @@
 {
-  "name": "scaleconnect",
+  "name": "scaleconnect-saas",
   "version": "1.0.0",
-  "private": true,
+  "description": "Plataforma SaaS ScaleConnect - Conectando Candidatos, Empresas e Parceiros Educacionais",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
-    "next": "^14.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "next": "^14.0.0",
+    "@prisma/client": "^5.7.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "axios": "^1.6.2",
+    "stripe": "^14.7.0",
+    "zod": "^3.22.4",
+    "next-auth": "^4.24.5",
+    "react-hook-form": "^7.48.0",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/react": "^18.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    "prisma": "^5.7.0",
+    "eslint": "^8.55.0",
+    "eslint-config-next": "^14.0.0"
   }
 }
