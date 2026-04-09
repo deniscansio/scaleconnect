@@ -38,7 +38,7 @@ export default function AdminSettingsPage() {
     smtpPassword: '••••••••••',
   })
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }))
     setSaved(false)
   }
