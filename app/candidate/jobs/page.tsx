@@ -59,7 +59,12 @@ export default function CandidateJobsPage() {
     },
   ])
 
-  const [selectedJob, setSelectedJob] = useState(null)
+  // ✅ CORRIGIDO
+  const [selectedJob, setSelectedJob] = useState<number | null>(null)
+
+  // ✅ ADICIONADOS (faltavam e quebravam o build)
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false)
+  const [withdrawalReason, setWithdrawalReason] = useState('')
 
   const getStatusBadge = (status: string) => {
     const statusMap: { [key: string]: { bg: string; text: string; label: string } } = {
@@ -68,26 +73,34 @@ export default function CandidateJobsPage() {
       rejected: { bg: 'bg-red-100', text: 'text-red-700', label: 'Rejeitado' },
     }
     const s = statusMap[status] || statusMap.interested
-    return <span className={`px-3 py-1 ${s.bg} ${s.text} rounded-full text-sm font-semibold`}>{s.label}</span>
+    return (
+      <span className={`px-3 py-1 ${s.bg} ${s.text} rounded-full text-sm font-semibold`}>
+        {s.label}
+      </span>
+    )
   }
 
   const handleApply = (id: number) => {
-    setJobs(jobs.map(job => 
-      job.id === id ? { ...job, status: 'applied', appliedAt: new Date().toISOString().split('T')[0] } : job
+    setJobs(jobs.map(job =>
+      job.id === id
+        ? { ...job, status: 'applied', appliedAt: new Date().toISOString().split('T')[0] }
+        : job
     ))
   }
 
   const handleWithdraw = (id: number, reason: string) => {
-    setJobs(jobs.map(job => 
-      job.id === id ? { ...job, status: 'interested', appliedAt: null } : job
+    setJobs(jobs.map(job =>
+      job.id === id
+        ? { ...job, status: 'interested', appliedAt: null }
+        : job
     ))
+
     setShowWithdrawalModal(false)
     setWithdrawalReason('')
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-candidate-light to-slate-50">
-      {/* Navigation */}
       <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
@@ -97,9 +110,7 @@ export default function CandidateJobsPage() {
         </div>
       </nav>
 
-      {/* Sidebar + Content */}
       <div className="flex">
-        {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
             <Link href="/candidate/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
@@ -123,37 +134,21 @@ export default function CandidateJobsPage() {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <div className="flex-1 p-8">
           <div className="max-w-6xl mx-auto">
-            {/* Header */}
+
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">📋 Vagas de Emprego</h1>
               <p className="text-gray-600">Explore vagas alinhadas com sua jornada profissional e ganhe com sua carreira</p>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-4 mb-8 overflow-x-auto">
-              <button className="px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold whitespace-nowrap">
-                Todas ({jobs.length})
-              </button>
-              <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 whitespace-nowrap">
-                Candidatadas ({jobs.filter(j => j.status === 'applied').length})
-              </button>
-              <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 whitespace-nowrap">
-                Interessadas ({jobs.filter(j => j.status === 'interested').length})
-              </button>
-            </div>
-
-            {/* Jobs List */}
             <div className="space-y-4">
               {jobs.map((job) => (
-                <div 
-                  key={job.id} 
+                <div
+                  key={job.id}
                   className="card bg-white border-l-4 border-candidate-secondary hover:shadow-lg transition cursor-pointer"
                   onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
                 >
-                  {/* Header */}
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
@@ -169,40 +164,6 @@ export default function CandidateJobsPage() {
 
                   <p className="text-gray-700 mb-4">{job.description}</p>
 
-                  {/* Expandable Details */}
-                  {selectedJob === job.id && (
-                    <div className="mb-4 pb-4 border-t pt-4">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        {/* Requirements */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3">📋 Requisitos:</h4>
-                          <ul className="space-y-2">
-                            {job.requirements.map((req, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-gray-700">
-                                <span className="text-candidate-primary mt-1">✓</span>
-                                <span>{req}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* Benefits */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3">🎁 Benefícios:</h4>
-                          <ul className="space-y-2">
-                            {job.benefits.map((benefit, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-gray-700">
-                                <span className="text-green-600 mt-1">✓</span>
-                                <span>{benefit}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Button */}
                   <div className="flex gap-3 mt-4">
                     <button
                       onClick={(e) => {
@@ -212,40 +173,25 @@ export default function CandidateJobsPage() {
                         }
                       }}
                       disabled={job.status === 'applied'}
-                      className="flex-1 px-6 py-2 bg-candidate-secondary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-6 py-2 bg-candidate-secondary text-white rounded-lg font-semibold disabled:opacity-50"
                     >
                       {job.status === 'applied' ? '✓ Candidatado' : 'Candidatar-se'}
                     </button>
                   </div>
 
-                  {/* Applied Status */}
                   {job.status === 'applied' && (
-                    <p className="text-sm text-green-700 font-semibold mt-2">✓ Candidatado em {job.appliedAt}</p>
+                    <p className="text-sm text-green-700 font-semibold mt-2">
+                      ✓ Candidatado em {job.appliedAt}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
-
-            {/* Stats */}
-            <div className="grid md:grid-cols-3 gap-6 mt-8">
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">Total de Vagas</p>
-                <p className="text-3xl font-bold text-candidate-primary">{jobs.length}</p>
-              </div>
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">Candidatadas</p>
-                <p className="text-3xl font-bold text-green-600">{jobs.filter(j => j.status === 'applied').length}</p>
-              </div>
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">Salário Médio</p>
-                <p className="text-3xl font-bold text-candidate-secondary">R$ 5.250</p>
-              </div>
-            </div>
-
 
           </div>
         </div>
       </div>
     </main>
   )
+}
 }
