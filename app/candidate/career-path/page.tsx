@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 export default function CandidateCareerPathPage() {
-  const [selectedRole, setSelectedRole] = useState(null)
+  const [selectedRole, setSelectedRole] = useState<number | null>(null)
 
   const careerJourney = [
     {
