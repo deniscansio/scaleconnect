@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [userType, setUserType] = useState<'CANDIDATE' | 'COMPANY' | 'PARTNER' | null>(
@@ -74,9 +74,9 @@ export default function SignupPage() {
 
       // Redirecionar
       if (userType === 'CANDIDATE') {
-        router.push('/candidate/dashboard')
+        router.push('/candidato/dashboard')
       } else if (userType === 'COMPANY') {
-        router.push('/company/dashboard')
+        router.push('/empresa/dashboard')
       }
     } catch (err) {
       setError('Erro ao conectar ao servidor')
@@ -259,5 +259,13 @@ export default function SignupPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}>
+      <SignupForm />
+    </Suspense>
   )
 }

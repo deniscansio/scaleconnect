@@ -53,7 +53,7 @@ export default function CompanyJobsPage() {
     requirements: '',
   })
 
-  const [selectedJob, setSelectedJob] = useState(null)
+  const [selectedJob, setSelectedJob] = useState<number | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target

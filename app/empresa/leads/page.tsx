@@ -8,7 +8,7 @@ export default function CompanyLeadsPage() {
   const [showImportModal, setShowImportModal] = useState(false)
 
   // Leads Cedidos pela Empresa
-  const [providedLeads, setProvidedLeads] = useState([
+  const [providedLeads, setProvidedLeads] = useState<any[]>([
     {
       id: 1,
       companyName: 'Tech Solutions Brasil',
@@ -291,7 +291,7 @@ export default function CompanyLeadsPage() {
                           <td className="px-6 py-4 text-sm">
                             {lead.authorizedReps.length > 0 ? (
                               <div className="space-y-1">
-                                {lead.authorizedReps.map((rep) => (
+                                {lead.authorizedReps.map((rep: string) => (
                                   <span key={rep} className="block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
                                     {rep}
                                   </span>

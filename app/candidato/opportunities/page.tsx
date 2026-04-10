@@ -55,7 +55,7 @@ export default function CandidateOpportunitiesPage() {
     },
   ])
 
-  const [selectedOpportunity, setSelectedOpportunity] = useState(null)
+  const [selectedOpportunity, setSelectedOpportunity] = useState<number | null>(null)
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false)
   const [withdrawalReason, setWithdrawalReason] = useState('')
 
@@ -260,7 +260,7 @@ export default function CandidateOpportunitiesPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
-                        if (withdrawalReason) {
+                        if (withdrawalReason && selectedOpportunity !== null) {
                           handleWithdraw(selectedOpportunity, withdrawalReason)
                         }
                       }}

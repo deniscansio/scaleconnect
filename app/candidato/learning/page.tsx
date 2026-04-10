@@ -83,7 +83,7 @@ export default function CandidateLearningPage() {
   ])
 
   const [selectedTab, setSelectedTab] = useState('todos')
-  const [selectedCourse, setSelectedCourse] = useState(null)
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null)
 
   const completedCourses = courses.filter(c => c.progress === 100).length
   const inProgressCourses = courses.filter(c => c.progress > 0 && c.progress < 100).length

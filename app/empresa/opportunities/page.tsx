@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 export default function CompanyRepresentationPage() {
   const [activeTab, setActiveTab] = useState('leads')
-  const [selectedOpp, setSelectedOpp] = useState(null)
+  const [selectedOpp, setSelectedOpp] = useState<number | null>(null)
   const [showMaterials, setShowMaterials] = useState(false)
 
   // Oportunidades de Geração de Leads (BDR/SDR)
@@ -249,14 +249,14 @@ export default function CompanyRepresentationPage() {
               {activeTab === 'leads' && (
                 <div className="p-3 bg-purple-50 rounded-lg">
                   <p className="text-xs text-gray-600 mb-1">Comissão/Reunião</p>
-                  <p className="font-bold text-purple-600">{opp.commissionPerMeeting}</p>
+                  <p className="font-bold text-purple-600">{(opp as any).commissionPerMeeting}</p>
                 </div>
               )}
 
               {activeTab === 'sales' && (
                 <div className="p-3 bg-orange-50 rounded-lg">
                   <p className="text-xs text-gray-600 mb-1">Comissão/Venda</p>
-                  <p className="font-bold text-orange-600">{opp.commissionPerSale}</p>
+                  <p className="font-bold text-orange-600">{(opp as any).commissionPerSale}</p>
                 </div>
               )}
 
@@ -264,11 +264,11 @@ export default function CompanyRepresentationPage() {
                 <>
                   <div className="p-3 bg-purple-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Comissão/Reunião</p>
-                    <p className="font-bold text-purple-600">{opp.commissionPerMeeting}</p>
+                    <p className="font-bold text-purple-600">{(opp as any).commissionPerMeeting}</p>
                   </div>
                   <div className="p-3 bg-orange-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-1">Comissão/Venda</p>
-                    <p className="font-bold text-orange-600">{opp.commissionPerSale}</p>
+                    <p className="font-bold text-orange-600">{(opp as any).commissionPerSale}</p>
                   </div>
                 </>
               )}
@@ -323,7 +323,7 @@ export default function CompanyRepresentationPage() {
                       <p className="text-xs text-gray-600 mb-2 font-semibold">📧 Email Padrão</p>
                       <textarea 
                         className="w-full p-2 border rounded text-xs bg-white"
-                        rows="3"
+                        rows={3}
                         value={opp.emailTemplate}
                         readOnly
                       />
@@ -335,7 +335,7 @@ export default function CompanyRepresentationPage() {
                       <p className="text-xs text-gray-600 mb-2 font-semibold">💬 WhatsApp Padrão</p>
                       <textarea 
                         className="w-full p-2 border rounded text-xs bg-white"
-                        rows="3"
+                        rows={3}
                         value={opp.whatsappTemplate}
                         readOnly
                       />
@@ -347,7 +347,7 @@ export default function CompanyRepresentationPage() {
                       <p className="text-xs text-gray-600 mb-2 font-semibold">🔗 LinkedIn Padrão</p>
                       <textarea 
                         className="w-full p-2 border rounded text-xs bg-white"
-                        rows="3"
+                        rows={3}
                         value={opp.linkedinTemplate}
                         readOnly
                       />

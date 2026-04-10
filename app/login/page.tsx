@@ -36,9 +36,9 @@ export default function LoginPage() {
 
       // Redirecionar baseado no tipo de usuário
       if (data.userType === 'CANDIDATE') {
-        router.push('/candidate/dashboard')
+        router.push('/candidato/dashboard')
       } else if (data.userType === 'COMPANY') {
-        router.push('/company/dashboard')
+        router.push('/empresa/dashboard')
       } else if (data.userType === 'ADMIN') {
         router.push('/admin/dashboard')
       }
@@ -101,7 +101,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Não tem conta?{' '}
-              <Link href="/signup" className="text-candidate-primary font-semibold hover:underline">
+              <Link href="/cadastro" className="text-candidate-primary font-semibold hover:underline">
                 Cadastre-se
               </Link>
             </p>

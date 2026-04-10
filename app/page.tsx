@@ -11,7 +11,7 @@ export default function Home() {
             <Link href="/login" className="px-4 py-2 text-gray-700 hover:text-gray-900">
               Entrar
             </Link>
-            <Link href="/signup" className="px-4 py-2 bg-candidate-primary text-white rounded-lg hover:bg-opacity-90">
+            <Link href="/cadastro" className="px-4 py-2 bg-candidate-primary text-white rounded-lg hover:bg-opacity-90">
               Cadastrar
             </Link>
           </div>
@@ -28,10 +28,10 @@ export default function Home() {
             ScaleConnect une candidatos, empresas e parceiros educacionais em um ecossistema de vendas, aprendizado e geração de renda.
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/signup?type=candidate" className="px-8 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
+            <Link href="/cadastro?type=candidato" className="px-8 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
               Sou Candidato
             </Link>
-            <Link href="/signup?type=company" className="px-8 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
+            <Link href="/cadastro?type=empresa" className="px-8 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
               Sou Empresa
             </Link>
           </div>
