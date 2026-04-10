@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { careerPath } from '../../data/career-path'
 
@@ -8,6 +8,7 @@ interface CompletedCourse {
   id: number
   certificateUrl?: string
   completedAt?: string
+  fileName?: string
 }
 
 export default function JornadaSucessoPage() {
@@ -15,6 +16,7 @@ export default function JornadaSucessoPage() {
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [completedCourses, setCompletedCourses] = useState<CompletedCourse[]>([])
   const [uploadingCourseId, setUploadingCourseId] = useState<number | null>(null)
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
 
   // Calcular progresso baseado em cursos concluídos
   const totalCompetencies = careerPath.currentPosition.competencies.length
@@ -38,22 +40,52 @@ export default function JornadaSucessoPage() {
     return allCourses.filter(course => course.competency === competency)
   }
 
-  const handleCertificateUpload = (courseId: number) => {
-    // Simular upload de certificado
+  const handleFileSelect = (courseId: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validar tipo de arquivo
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+    if (!validTypes.includes(file.type)) {
+      alert('Por favor, selecione um arquivo PDF ou imagem (JPG/PNG)')
+      return
+    }
+
+    // Validar tamanho (máximo 10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      alert('O arquivo não pode exceder 10MB')
+      return
+    }
+
+    // Simular upload com delay
     setUploadingCourseId(courseId)
-    setTimeout(() => {
-      if (!completedCourses.find(cc => cc.id === courseId)) {
-        setCompletedCourses([
-          ...completedCourses,
-          {
-            id: courseId,
-            certificateUrl: `certificate-${courseId}.pdf`,
-            completedAt: new Date().toLocaleDateString('pt-BR')
-          }
-        ])
-      }
-      setUploadingCourseId(null)
-    }, 1500)
+    
+    // Ler o arquivo como Data URL para simulação
+    const reader = new FileReader()
+    reader.onload = () => {
+      setTimeout(() => {
+        if (!completedCourses.find(cc => cc.id === courseId)) {
+          setCompletedCourses([
+            ...completedCourses,
+            {
+              id: courseId,
+              certificateUrl: reader.result as string,
+              completedAt: new Date().toLocaleDateString('pt-BR'),
+              fileName: file.name
+            }
+          ])
+        }
+        setUploadingCourseId(null)
+        // Limpar o input
+        event.target.value = ''
+      }, 1500)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleUploadClick = (courseId: number) => {
+    fileInputRefs.current[courseId]?.click()
   }
 
   const handleRedirectToCourse = (url: string) => {
@@ -62,6 +94,10 @@ export default function JornadaSucessoPage() {
 
   const isCourseCompleted = (courseId: number) => {
     return completedCourses.some(cc => cc.id === courseId)
+  }
+
+  const getCompletedCourseInfo = (courseId: number) => {
+    return completedCourses.find(cc => cc.id === courseId)
   }
 
   return (
@@ -250,47 +286,68 @@ export default function JornadaSucessoPage() {
                 </h3>
 
                 <div className="space-y-3">
-                  {getCoursesForCompetency(competency).map((course: any) => (
-                    <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-bold text-gray-900 mb-1">{course.title}</h4>
-                          <p className="text-sm text-gray-600 mb-2">{course.institution}</p>
-                          <div className="flex items-center gap-3 text-sm">
-                            <span className="text-gray-600">⏱️ {course.duration}</span>
-                            {course.certificate && <span className="text-green-600">✓ Certificado</span>}
-                            <span className="font-bold text-orange-600">
-                              {typeof course.value === 'number' ? `R$ ${course.value}` : course.value}
-                            </span>
+                  {getCoursesForCompetency(competency).map((course: any) => {
+                    const isCompleted = isCourseCompleted(course.id)
+                    const completedInfo = getCompletedCourseInfo(course.id)
+
+                    return (
+                      <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-gray-900 mb-1">{course.title}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{course.institution}</p>
+                            <div className="flex items-center gap-3 text-sm">
+                              <span className="text-gray-600">⏱️ {course.duration}</span>
+                              {course.certificate && <span className="text-green-600">✓ Certificado</span>}
+                              <span className="font-bold text-orange-600">
+                                {typeof course.value === 'number' ? `R$ ${course.value}` : course.value}
+                              </span>
+                            </div>
+                            {isCompleted && completedInfo && (
+                              <div className="text-xs text-green-600 mt-2">
+                                ✓ Concluído em {completedInfo.completedAt} - Arquivo: {completedInfo.fileName}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => handleRedirectToCourse(course.url)}
+                              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm whitespace-nowrap"
+                            >
+                              Acessar
+                            </button>
+                            {isCompleted ? (
+                              <button
+                                disabled
+                                className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm whitespace-nowrap cursor-not-allowed"
+                              >
+                                ✓ Concluído
+                              </button>
+                            ) : (
+                              <>
+                                <input
+                                  ref={(el) => {
+                                    if (el) fileInputRefs.current[course.id] = el
+                                  }}
+                                  type="file"
+                                  accept=".pdf,image/jpeg,image/png,image/jpg"
+                                  onChange={(e) => handleFileSelect(course.id, e)}
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  onClick={() => handleUploadClick(course.id)}
+                                  disabled={uploadingCourseId === course.id}
+                                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                  {uploadingCourseId === course.id ? '⏳ Processando...' : '📤 Upload Certificado'}
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-4">
-                          <button
-                            onClick={() => handleRedirectToCourse(course.url)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm whitespace-nowrap"
-                          >
-                            Acessar
-                          </button>
-                          {isCourseCompleted(course.id) ? (
-                            <button
-                              disabled
-                              className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm whitespace-nowrap cursor-not-allowed"
-                            >
-                              ✓ Concluído
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleCertificateUpload(course.id)}
-                              disabled={uploadingCourseId === course.id}
-                              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold text-sm whitespace-nowrap disabled:opacity-50"
-                            >
-                              {uploadingCourseId === course.id ? '⏳ Processando...' : '📤 Upload Certificado'}
-                            </button>
-                          )}
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             ))}
