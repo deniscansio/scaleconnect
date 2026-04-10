@@ -67,23 +67,20 @@ export default function CandidateDashboard() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/candidato/dashboard" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
-              📊 Dashboard
+            <Link href="/candidato/jornada-sucesso" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
+              🚀 Jornada de Sucesso
             </Link>
             <Link href="/candidato/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </Link>
             <Link href="/candidato/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              💼 Oportunidades
+              🤝 Afiliado
             </Link>
             <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💰 Meus Ganhos
             </Link>
-            <Link href="/candidato/jornada-sucesso" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              🚀 Jornada de Sucesso
-            </Link>
-            <Link href="/candidato/learning" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📚 Aprendizado
+            <Link href="/candidato/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+              📊 Dashboard
             </Link>
             <Link href="/candidato/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               👤 Perfil
