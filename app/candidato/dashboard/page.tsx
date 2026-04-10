@@ -67,25 +67,25 @@ export default function CandidateDashboard() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/candidate/dashboard" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
+            <Link href="/candidato/dashboard" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
               📊 Dashboard
             </Link>
-            <Link href="/candidate/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </Link>
-            <Link href="/candidate/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Oportunidades
             </Link>
-            <Link href="/candidate/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💰 Meus Ganhos
             </Link>
-            <Link href="/candidate/career-path" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/career-path" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               🚀 Jornada de Sucesso
             </Link>
-            <Link href="/candidate/learning" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/learning" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📚 Aprendizado
             </Link>
-            <Link href="/candidate/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               👤 Perfil
             </Link>
           </nav>
@@ -139,7 +139,7 @@ export default function CandidateDashboard() {
             <div className="mb-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">💼 Oportunidades Ativas</h2>
-                <Link href="/candidate/opportunities" className="text-candidate-primary font-semibold hover:underline">
+                <Link href="/candidato/opportunities" className="text-candidate-primary font-semibold hover:underline">
                   Ver Todas
                 </Link>
               </div>
@@ -167,7 +167,7 @@ export default function CandidateDashboard() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">📋 Vagas Recomendadas</h2>
-                <Link href="/candidate/jobs" className="text-candidate-primary font-semibold hover:underline">
+                <Link href="/candidato/jobs" className="text-candidate-primary font-semibold hover:underline">
                   Ver Todas
                 </Link>
               </div>

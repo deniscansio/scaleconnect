@@ -83,19 +83,19 @@ export default function CompanySubscriptionPage() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <a href="/company/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <a href="/empresa/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📊 Dashboard
             </a>
-            <a href="/company/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <a href="/empresa/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </a>
-            <a href="/company/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <a href="/empresa/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📞 CRM de Leads
             </a>
-            <a href="/company/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <a href="/empresa/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Representação
             </a>
-            <a href="/company/subscription" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
+            <a href="/empresa/subscription" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
               💳 Assinatura
             </a>
           </nav>

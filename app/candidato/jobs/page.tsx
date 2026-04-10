@@ -104,7 +104,7 @@ export default function CandidateJobsPage() {
       <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
-          <Link href="/candidate/dashboard" className="text-candidate-primary font-semibold hover:underline">
+          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold hover:underline">
             ← Voltar ao Dashboard
           </Link>
         </div>
@@ -113,22 +113,22 @@ export default function CandidateJobsPage() {
       <div className="flex">
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/candidate/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📊 Dashboard
             </Link>
-            <Link href="/candidate/jobs" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
+            <Link href="/candidato/jobs" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
               📋 Vagas
             </Link>
-            <Link href="/candidate/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Oportunidades
             </Link>
-            <Link href="/candidate/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💰 Meus Ganhos
             </Link>
-            <Link href="/candidate/career-path" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/career-path" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               🚀 Jornada de Sucesso
             </Link>
-            <Link href="/candidate/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               👤 Perfil
             </Link>
           </nav>

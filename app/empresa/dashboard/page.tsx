@@ -66,25 +66,25 @@ export default function CompanyDashboard() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/company/dashboard" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
+            <Link href="/empresa/dashboard" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
               📊 Dashboard
             </Link>
-            <Link href="/company/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </Link>
-            <Link href="/company/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Oportunidades
             </Link>
-            <Link href="/company/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📞 Leads
             </Link>
-            <Link href="/company/meetings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/meetings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📅 Reuniões
             </Link>
-            <Link href="/company/metrics" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/metrics" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📈 Métricas
             </Link>
-            <Link href="/company/billing" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/billing" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💳 Faturamento
             </Link>
           </nav>
@@ -147,13 +147,13 @@ export default function CompanyDashboard() {
               <div className="card bg-white">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Ações Rápidas</h3>
                 <div className="space-y-3">
-                  <Link href="/company/jobs/new" className="block w-full py-2 px-4 bg-company-primary text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
+                  <Link href="/empresa/jobs/new" className="block w-full py-2 px-4 bg-company-primary text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
                     + Publicar Vaga
                   </Link>
-                  <Link href="/company/opportunities/new" className="block w-full py-2 px-4 bg-company-secondary text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
+                  <Link href="/empresa/opportunities/new" className="block w-full py-2 px-4 bg-company-secondary text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
                     + Criar Oportunidade
                   </Link>
-                  <Link href="/company/leads/import" className="block w-full py-2 px-4 bg-gray-500 text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
+                  <Link href="/empresa/leads/import" className="block w-full py-2 px-4 bg-gray-500 text-white rounded-lg text-center font-semibold hover:bg-opacity-90">
                     📥 Importar Leads
                   </Link>
                 </div>

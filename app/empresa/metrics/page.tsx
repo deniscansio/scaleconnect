@@ -9,7 +9,7 @@ export default function CompanyMetricsPage() {
       <nav className="bg-white shadow-sm border-b-4 border-company-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-company-primary">ScaleConnect</div>
-          <Link href="/company/dashboard" className="text-company-primary font-semibold hover:underline">
+          <Link href="/empresa/dashboard" className="text-company-primary font-semibold hover:underline">
             ← Voltar ao Dashboard
           </Link>
         </div>
@@ -20,25 +20,25 @@ export default function CompanyMetricsPage() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/company/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📊 Dashboard
             </Link>
-            <Link href="/company/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </Link>
-            <Link href="/company/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Oportunidades
             </Link>
-            <Link href="/company/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📞 Leads
             </Link>
-            <Link href="/company/meetings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/meetings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📅 Reuniões
             </Link>
-            <Link href="/company/metrics" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
+            <Link href="/empresa/metrics" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
               📈 Métricas
             </Link>
-            <Link href="/company/billing" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/empresa/billing" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💳 Faturamento
             </Link>
           </nav>

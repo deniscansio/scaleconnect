@@ -94,7 +94,7 @@ export default function CandidateCareerPathPage() {
       <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
-          <Link href="/candidate/dashboard" className="text-candidate-primary font-semibold hover:underline">
+          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold hover:underline">
             ← Voltar ao Dashboard
           </Link>
         </div>
@@ -105,22 +105,22 @@ export default function CandidateCareerPathPage() {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
-            <Link href="/candidate/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📊 Dashboard
             </Link>
-            <Link href="/candidate/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📋 Vagas
             </Link>
-            <Link href="/candidate/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💼 Oportunidades
             </Link>
-            <Link href="/candidate/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💰 Meus Ganhos
             </Link>
-            <Link href="/candidate/career-path" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
+            <Link href="/candidato/career-path" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
               🚀 Jornada de Sucesso
             </Link>
-            <Link href="/candidate/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <Link href="/candidato/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               👤 Perfil
             </Link>
           </nav>
@@ -242,11 +242,11 @@ export default function CandidateCareerPathPage() {
             <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
               <h3 className="text-lg font-bold text-gray-900 mb-4">💡 Próximos Passos Recomendados</h3>
               <div className="grid md:grid-cols-2 gap-4">
-                <Link href="/candidate/opportunities" className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition">
+                <Link href="/candidato/opportunities" className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition">
                   <p className="font-semibold text-gray-900">💼 Explorar Oportunidades</p>
                   <p className="text-sm text-gray-600 mt-1">Ganhe comissões representando produtos e serviços</p>
                 </Link>
-                <Link href="/candidate/jobs" className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition">
+                <Link href="/candidato/jobs" className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition">
                   <p className="font-semibold text-gray-900">📋 Candidatar-se a Vagas</p>
                   <p className="text-sm text-gray-600 mt-1">Encontre vagas alinhadas com sua jornada</p>
                 </Link>

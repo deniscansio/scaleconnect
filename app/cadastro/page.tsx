@@ -55,7 +55,7 @@ function SignupForm() {
         payload.companyName = formData.companyName
       }
 
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/cadastro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
