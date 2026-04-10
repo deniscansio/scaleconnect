@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
+import { companyConfig } from '../../config/company'
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -43,7 +45,13 @@ export default function AdminDashboardPage() {
       {/* Navigation */}
       <nav className="bg-black shadow-lg border-b-4 border-yellow-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-yellow-400">🔐 ScaleConnect Admin</div>
+          <div className="flex items-center gap-3">
+            <Image src={companyConfig.logo} alt="Logo" width={40} height={40} className="h-10 w-10" />
+            <div>
+              <div className="text-xs text-gray-400">{companyConfig.name}</div>
+              <div className="text-xl font-bold text-yellow-400">ScaleConnect Admin</div>
+            </div>
+          </div>
           <div className="flex gap-4">
             <Link href="/login" className="text-white font-semibold hover:text-yellow-400">
               Logout

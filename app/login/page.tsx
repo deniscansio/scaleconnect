@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { companyConfig } from '../config/company'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -54,8 +56,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="card">
           <div className="text-center mb-8">
+            <Image src={companyConfig.logo} alt="Logo" width={60} height={60} className="h-16 w-16 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-candidate-primary mb-2">ScaleConnect</h1>
-            <p className="text-gray-600">Faça login na sua conta</p>
+            <p className="text-xs text-gray-500 mb-4">by {companyConfig.name}</p>
+            <p className="text-gray-600">Faca login na sua conta</p>
           </div>
 
           {error && (
@@ -104,6 +108,20 @@ export default function LoginPage() {
               <Link href="/cadastro" className="text-candidate-primary font-semibold hover:underline">
                 Cadastre-se
               </Link>
+            </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+            <p className="mb-2">Precisa de ajuda?</p>
+            <p>
+              <a href={`mailto:${companyConfig.contact.email}`} className="text-candidate-primary hover:underline">
+                {companyConfig.contact.email}
+              </a>
+            </p>
+            <p>
+              <a href={companyConfig.contact.whatsappLink} target="_blank" rel="noopener noreferrer" className="text-candidate-primary hover:underline">
+                WhatsApp: {companyConfig.contact.whatsapp}
+              </a>
             </p>
           </div>
         </div>

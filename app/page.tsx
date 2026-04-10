@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link'
+import Image from 'next/image'
+import { companyConfig } from './config/company'
 
 export default function Home() {
   return (
@@ -6,7 +10,13 @@ export default function Home() {
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
+          <div className="flex items-center gap-2">
+            <Image src={companyConfig.logo} alt="Logo" width={40} height={40} className="h-10 w-10" />
+            <div>
+              <div className="text-xs text-gray-500">by {companyConfig.name}</div>
+              <div className="text-xl font-bold text-candidate-primary">ScaleConnect</div>
+            </div>
+          </div>
           <div className="flex gap-4">
             <Link href="/login" className="px-4 py-2 text-gray-700 hover:text-gray-900">
               Entrar
@@ -25,7 +35,7 @@ export default function Home() {
             Conecte Crescimento Profissional com Oportunidades Reais
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            ScaleConnect une candidatos, empresas e parceiros educacionais em um ecossistema de vendas, aprendizado e geração de renda.
+            {companyConfig.description}
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/cadastro?type=candidato" className="px-8 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
@@ -116,8 +126,29 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white mt-20 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2024 ScaleConnect. Todos os direitos reservados.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h4 className="text-lg font-bold mb-4">Sobre</h4>
+              <p className="text-gray-400 text-sm">ScaleConnect eh uma plataforma de vendas e carreira desenvolvida por {companyConfig.name}.</p>
+            </div>
+            <div>
+              <h4 className="text-lg font-bold mb-4">Suporte</h4>
+              <p className="text-gray-400 text-sm mb-2">
+                <strong>Email:</strong> {companyConfig.contact.email}
+              </p>
+              <p className="text-gray-400 text-sm">
+                <strong>WhatsApp:</strong> <a href={companyConfig.contact.whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:text-white">{companyConfig.contact.whatsapp}</a>
+              </p>
+            </div>
+            <div>
+              <h4 className="text-lg font-bold mb-4">Localizacao</h4>
+              <p className="text-gray-400 text-sm">{companyConfig.address}</p>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 pt-8 text-center">
+            <p className="text-gray-400 text-sm">&copy; 2024 {companyConfig.platformName} by {companyConfig.name}. Todos os direitos reservados.</p>
+          </div>
         </div>
       </footer>
     </main>
