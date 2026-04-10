@@ -16,52 +16,78 @@ export default function JornadaSucessoPage() {
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [completedCourses, setCompletedCourses] = useState<CompletedCourse[]>([])
   const [uploadingCourseId, setUploadingCourseId] = useState<number | null>(null)
+  const [viewingCertificate, setViewingCertificate] = useState<string | null>(null)
+  const [selectedCareerGoal, setSelectedCareerGoal] = useState<number>(6) // Diretor Comercial por padrão
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
 
-  // Calcular progresso baseado em cursos concluídos
-  const totalCompetencies = careerPath.currentPosition.competencies.length
-  const completedCompetencies = new Set(
-    completedCourses
-      .map(cc => {
-        const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === cc.id)
-        return course?.competency
-      })
-      .filter(Boolean)
-  ).size
-  const progressPercentage = Math.round((completedCompetencies / totalCompetencies) * 100)
-
-  const handleCompetencyClick = (competency: string) => {
-    setSelectedCompetency(competency)
-    setShowCourseModal(true)
+  // Calcular progresso por cargo
+  const getCargoProgress = (cargoId: number) => {
+    const cargo = careerPath.evolutionPath.find(c => c.id === cargoId)
+    if (!cargo) return 0
+    
+    const requiredCompetencies = cargo.requiredCompetencies || []
+    const developedCompetencies = new Set(
+      completedCourses
+        .map(cc => {
+          const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === cc.id)
+          return course?.competency
+        })
+        .filter(Boolean)
+    )
+    
+    const matchedCompetencies = requiredCompetencies.filter(comp => developedCompetencies.has(comp)).length
+    return Math.round((matchedCompetencies / requiredCompetencies.length) * 100)
   }
 
-  const getCoursesForCompetency = (competency: string) => {
-    const allCourses = [...careerPath.courses.free, ...careerPath.courses.paid] as any[]
-    return allCourses.filter(course => course.competency === competency)
+  // Calcular progresso geral até o cargo desejado
+  const getOverallProgress = () => {
+    let totalCompetencies = 0
+    let developedCompetencies = 0
+    
+    const targetCargo = careerPath.evolutionPath.find(c => c.id === selectedCareerGoal)
+    if (!targetCargo) return 0
+    
+    // Contar todas as competências necessárias até o cargo desejado
+    for (let i = 0; i < careerPath.evolutionPath.length; i++) {
+      const cargo = careerPath.evolutionPath[i]
+      const requiredComps = cargo.requiredCompetencies || []
+      totalCompetencies += requiredComps.length
+      
+      const developedComps = new Set(
+        completedCourses
+          .map(cc => {
+            const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === cc.id)
+            return course?.competency
+          })
+          .filter(Boolean)
+      )
+      
+      developedCompetencies += requiredComps.filter(comp => developedComps.has(comp)).length
+      
+      if (cargo.id === selectedCareerGoal) break
+    }
+    
+    return totalCompetencies > 0 ? Math.round((developedCompetencies / totalCompetencies) * 100) : 0
   }
 
   const handleFileSelect = (courseId: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validar tipo de arquivo
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
     if (!validTypes.includes(file.type)) {
       alert('Por favor, selecione um arquivo PDF ou imagem (JPG/PNG)')
       return
     }
 
-    // Validar tamanho (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const maxSize = 10 * 1024 * 1024
     if (file.size > maxSize) {
       alert('O arquivo não pode exceder 10MB')
       return
     }
 
-    // Simular upload com delay
     setUploadingCourseId(courseId)
     
-    // Ler o arquivo como Data URL para simulação
     const reader = new FileReader()
     reader.onload = () => {
       setTimeout(() => {
@@ -77,7 +103,6 @@ export default function JornadaSucessoPage() {
           ])
         }
         setUploadingCourseId(null)
-        // Limpar o input
         event.target.value = ''
       }, 1500)
     }
@@ -99,6 +124,14 @@ export default function JornadaSucessoPage() {
   const getCompletedCourseInfo = (courseId: number) => {
     return completedCourses.find(cc => cc.id === courseId)
   }
+
+  const getCoursesForCompetency = (competency: string) => {
+    const allCourses = [...careerPath.courses.free, ...careerPath.courses.paid] as any[]
+    return allCourses.filter(course => course.competency === competency)
+  }
+
+  const overallProgress = getOverallProgress()
+  const targetCargo = careerPath.evolutionPath.find(c => c.id === selectedCareerGoal)
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -156,7 +189,10 @@ export default function JornadaSucessoPage() {
                 {careerPath.currentPosition.competencies.map((competency) => (
                   <button
                     key={competency}
-                    onClick={() => handleCompetencyClick(competency)}
+                    onClick={() => {
+                      setSelectedCompetency(competency)
+                      setShowCourseModal(true)
+                    }}
                     className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full font-semibold hover:bg-blue-200 transition cursor-pointer border-2 border-blue-300"
                   >
                     {competency}
@@ -167,113 +203,124 @@ export default function JornadaSucessoPage() {
           </div>
         </div>
 
-        {/* SEÇÃO 2: PRÓXIMOS PASSOS PARA AVANÇAR */}
+        {/* SEÇÃO 2: MAPA DE EVOLUÇÃO COM BARRAS DE PROGRESSO POR CARGO */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">📋 Próximos Passos para Avançar:</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Fundamentos de Vendas */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500">
-              <div className="text-3xl mb-3">📚</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Fundamentos de Vendas</h3>
-              <p className="text-sm text-gray-600 mb-4">Aprenda as bases da venda consultiva</p>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">✓</div>
-                <span className="text-green-600 font-semibold">Concluído</span>
-              </div>
-            </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">📈 Seu Caminho para Crescer Profissionalmente</h2>
+          <p className="text-gray-600 mb-8">
+            Cada cargo exige competências específicas. Veja abaixo o progresso para cada nível salarial e escolha seu objetivo final.
+          </p>
 
-            {/* Certificação SDR */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500">
-              <div className="text-3xl mb-3">🏆</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Certificação SDR</h3>
-              <p className="text-sm text-gray-600 mb-4">Valide suas habilidades como SDR</p>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">✓</div>
-                <span className="text-green-600 font-semibold">Concluído</span>
-              </div>
-            </div>
+          <div className="space-y-6">
+            {careerPath.evolutionPath.map((position, index) => {
+              const cargoProgress = getCargoProgress(position.id)
+              const isCurrentPosition = index === 0
+              const isSelectedGoal = position.id === selectedCareerGoal
 
-            {/* 6 meses de experiência */}
-            <div className="bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500">
-              <div className="text-3xl mb-3">💼</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">6 meses de experiência</h3>
-              <p className="text-sm text-gray-600 mb-4">Ganhe experiência prática no mercado</p>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">✓</div>
-                <span className="text-green-600 font-semibold">Concluído</span>
-              </div>
-            </div>
+              return (
+                <div
+                  key={position.id}
+                  className={`bg-white rounded-lg shadow-md p-6 border-l-8 transition cursor-pointer ${
+                    isCurrentPosition ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                  } ${isSelectedGoal ? 'ring-2 ring-orange-500' : ''}`}
+                  onClick={() => setSelectedCareerGoal(position.id)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl font-bold text-orange-600">{index + 1}</span>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900">{position.title}</h3>
+                          <p className="text-sm text-gray-600">{position.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right ml-6">
+                      <div className="text-3xl font-bold text-orange-600">
+                        R$ {position.salary.toLocaleString('pt-BR')}
+                      </div>
+                      {isCurrentPosition && <div className="text-xs text-green-600 font-semibold mt-2">Você está aqui</div>}
+                      {isSelectedGoal && !isCurrentPosition && <div className="text-xs text-orange-600 font-semibold mt-2">🎯 Seu Objetivo</div>}
+                    </div>
+                  </div>
+
+                  {/* Barra de Progresso do Cargo */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-gray-700">Progresso de Competências</span>
+                      <span className="text-xs font-bold text-orange-600">{cargoProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500"
+                        style={{ width: `${cargoProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Competências Necessárias */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-700 mb-2">Competências Necessárias:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {(position.requiredCompetencies || position.competencies).map((comp) => {
+                        const isCompleted = completedCourses.some(cc => {
+                          const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === cc.id)
+                          return course?.competency === comp
+                        })
+                        return (
+                          <span
+                            key={comp}
+                            className={`px-2 py-1 text-xs rounded font-semibold ${
+                              isCompleted
+                                ? 'bg-green-100 text-green-800 border border-green-300'
+                                : 'bg-gray-100 text-gray-700 border border-gray-300'
+                            }`}
+                          >
+                            {isCompleted ? '✓ ' : ''}{comp}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* SEÇÃO 3: MAPA DE EVOLUÇÃO DE CARREIRA */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">📈 Seu Caminho para Crescer Profissionalmente</h2>
-          <p className="text-gray-600 mb-8">
-            Trilhe este caminho de aprendizado e qualificação para evoluir de <strong>SDR Junior (R$ 3.500)</strong> até <strong>Diretor Comercial (R$ 25.000+)</strong>. 
-            Estude enquanto aguarda uma vaga ou oportunidade melhor!
-          </p>
-
-          <div className="space-y-4">
-            {careerPath.evolutionPath.map((position, index) => (
-              <div
-                key={position.id}
-                className={`bg-white rounded-lg shadow-md p-6 border-l-8 ${
-                  index === 0 ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl font-bold text-orange-600">{index + 1}</span>
-                      <h3 className="text-xl font-bold text-gray-900">{position.title}</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 ml-11 mb-3">{position.description}</p>
-                    <div className="flex flex-wrap gap-2 ml-11">
-                      {position.competencies.map((comp) => (
-                        <span key={comp} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-semibold">
-                          {comp}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="text-right ml-6">
-                    <div className="text-3xl font-bold text-orange-600">
-                      R$ {position.salary.toLocaleString('pt-BR')}
-                    </div>
-                    {index === 0 && <div className="text-xs text-green-600 font-semibold mt-2">Você está aqui</div>}
+        {/* SEÇÃO 3: PROGRESSO GERAL PARA OBJETIVO FINAL */}
+        {targetCargo && selectedCareerGoal !== 1 && (
+          <div className="mb-12">
+            <div className="bg-white rounded-lg shadow-lg p-8 border-l-8 border-orange-500">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">🎯 Progresso para Seu Objetivo Final</h2>
+              
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-lg font-bold text-gray-900">
+                    {targetCargo.title} - R$ {targetCargo.salary.toLocaleString('pt-BR')}
+                  </span>
+                  <span className="text-2xl font-bold text-orange-600">{overallProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500 flex items-center justify-center text-white font-bold text-sm"
+                    style={{ width: `${overallProgress}%` }}
+                  >
+                    {overallProgress > 15 && `${overallProgress}%`}
                   </div>
                 </div>
               </div>
-            ))}
+
+              <p className="text-gray-600">
+                Você precisa desenvolver <strong>{100 - overallProgress}%</strong> das competências necessárias para alcançar seu objetivo de <strong>{targetCargo.title}</strong> e ganhar <strong>R$ {targetCargo.salary.toLocaleString('pt-BR')}</strong>.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* SEÇÃO 4: CURSOS RECOMENDADOS */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">🎓 Cursos Recomendados para Sua Jornada</h2>
           
-          {/* Competências com progresso */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Progresso de Competências</h3>
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-gray-700">Progresso Geral</span>
-                <span className="text-sm font-bold text-orange-600">{progressPercentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                {completedCompetencies} de {totalCompetencies} competências desenvolvidas
-              </p>
-            </div>
-          </div>
-
-          {/* Cursos por competência */}
           <div className="space-y-6">
             {careerPath.competencies.map((competency) => (
               <div key={competency} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
@@ -317,12 +364,22 @@ export default function JornadaSucessoPage() {
                               Acessar
                             </button>
                             {isCompleted ? (
-                              <button
-                                disabled
-                                className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm whitespace-nowrap cursor-not-allowed"
-                              >
-                                ✓ Concluído
-                              </button>
+                              <>
+                                <button
+                                  disabled
+                                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm whitespace-nowrap cursor-not-allowed"
+                                >
+                                  ✓ Concluído
+                                </button>
+                                {completedInfo?.certificateUrl && (
+                                  <button
+                                    onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
+                                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm whitespace-nowrap"
+                                  >
+                                    👁️ Ver Certificado
+                                  </button>
+                                )}
+                              </>
                             ) : (
                               <>
                                 <input
@@ -358,7 +415,6 @@ export default function JornadaSucessoPage() {
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">💼 Próximos Passos Recomendados</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Explorar Oportunidades */}
             <Link href="/candidato/opportunities" className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-lg p-8 border-2 border-orange-300 hover:shadow-xl transition cursor-pointer">
               <div className="text-5xl mb-4">🚀</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Explorar Oportunidades</h3>
@@ -368,7 +424,6 @@ export default function JornadaSucessoPage() {
               <div className="text-orange-600 font-bold">Clique para explorar →</div>
             </Link>
 
-            {/* Candidatar-se a Vagas */}
             <Link href="/candidato/jobs" className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-8 border-2 border-blue-300 hover:shadow-xl transition cursor-pointer">
               <div className="text-5xl mb-4">📋</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Candidatar-se a Vagas</h3>
@@ -380,6 +435,30 @@ export default function JornadaSucessoPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL: Visualizar Certificado */}
+      {viewingCertificate && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-6 border-b-2 border-orange-500 flex justify-between items-center sticky top-0 bg-white">
+              <h3 className="text-2xl font-bold text-gray-900">Certificado</h3>
+              <button
+                onClick={() => setViewingCertificate(null)}
+                className="text-2xl font-bold text-gray-600 hover:text-gray-900"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {viewingCertificate.startsWith('data:image') ? (
+                <img src={viewingCertificate} alt="Certificado" className="w-full h-auto" />
+              ) : (
+                <iframe src={viewingCertificate} className="w-full h-[600px]" title="Certificado PDF"></iframe>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

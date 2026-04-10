@@ -1,12 +1,13 @@
-// Dados da Trilha de Sucesso
+// Dados da Trilha de Sucesso com Barras de Progresso por Cargo
 export const careerPath = {
   currentPosition: {
     title: 'SDR - Sales Development Representative',
     subtitle: 'SDR Junior',
     salary: 3500,
     progress: 100,
-    description: 'Profissional iniciante em vendas focado em prospecção',
-    competencies: ['Prospecção', 'Negociação Básica', 'CRM', 'Comunicação']
+    description: 'Profissional iniciante em vendas focado em prospecção INBOUND',
+    competencies: ['Prospecção Inbound', 'Negociação Básica', 'CRM', 'Comunicação'],
+    type: 'SDR'
   },
   targetPosition: {
     title: 'Diretor Comercial',
@@ -20,64 +21,81 @@ export const careerPath = {
       subtitle: 'SDR Junior',
       salary: 3500,
       progress: 100,
-      competencies: ['Prospecção', 'Negociação Básica', 'CRM', 'Comunicação'],
-      description: 'Profissional iniciante em vendas focado em prospecção'
+      competencies: ['Prospecção Inbound', 'Negociação Básica', 'CRM', 'Comunicação'],
+      description: 'Profissional iniciante em vendas focado em prospecção INBOUND',
+      type: 'SDR',
+      requiredCompetencies: ['Prospecção Inbound', 'Negociação Básica', 'CRM', 'Comunicação']
     },
     {
       id: 2,
-      title: 'SDR Pleno',
-      subtitle: 'Sales Development Representative',
-      salary: 5500,
-      progress: 20,
-      competencies: ['Prospecção Avançada', 'Negociação', 'CRM Avançado', 'Comunicação Executiva', 'Pipeline Management'],
-      description: 'Desenvolvimento de habilidades comerciais avançadas'
+      title: 'BDR - Business Development Representative',
+      subtitle: 'Business Development Representative',
+      salary: 4500,
+      progress: 0,
+      competencies: ['Prospecção Ativa (Outbound)', 'Negociação Avançada', 'CRM Avançado', 'Comunicação Executiva', 'Prospecting Outbound'],
+      description: 'Especialista em prospecção OUTBOUND e geração de demanda',
+      type: 'BDR',
+      requiredCompetencies: ['Prospecção Ativa (Outbound)', 'Negociação Avançada', 'CRM Avançado', 'Comunicação Executiva']
     },
     {
       id: 3,
       title: 'AE - Account Executive',
       subtitle: 'Executivo de Contas',
       salary: 8000,
-      progress: 40,
+      progress: 0,
       competencies: ['Vendas Consultivas', 'Gestão de Contas', 'Negociação Estratégica', 'Excel Avançado', 'Análise de Dados'],
-      description: 'Especialista em fechamento de negócios'
+      description: 'Especialista em fechamento de negócios e gestão de contas',
+      type: 'AE',
+      requiredCompetencies: ['Vendas Consultivas', 'Gestão de Contas', 'Negociação Estratégica', 'Excel Avançado', 'Análise de Dados']
     },
     {
       id: 4,
       title: 'Sales Manager',
       subtitle: 'Gerente de Vendas',
       salary: 12000,
-      progress: 60,
+      progress: 0,
       competencies: ['Liderança de Equipes', 'Gestão de Performance', 'Estratégia Comercial', 'Coaching de Vendas', 'Previsão de Receita'],
-      description: 'Liderança de equipes comerciais'
+      description: 'Liderança de equipes comerciais',
+      type: 'Manager',
+      requiredCompetencies: ['Liderança de Equipes', 'Gestão de Performance', 'Estratégia Comercial', 'Coaching de Vendas']
     },
     {
       id: 5,
       title: 'Sales Director',
       subtitle: 'Diretor de Vendas',
       salary: 18000,
-      progress: 80,
+      progress: 0,
       competencies: ['Gestão Estratégica', 'Liderança Executiva', 'Planejamento Comercial', 'Inglês Fluente', 'Gestão Financeira'],
-      description: 'Gestão estratégica de vendas'
+      description: 'Gestão estratégica de vendas',
+      type: 'Director',
+      requiredCompetencies: ['Gestão Estratégica', 'Liderança Executiva', 'Planejamento Comercial', 'Inglês Fluente']
     },
     {
       id: 6,
       title: 'Diretor Comercial',
       subtitle: 'Chief Commercial Officer',
       salary: 25000,
-      progress: 100,
+      progress: 0,
       competencies: ['Visão Estratégica', 'Liderança Transformacional', 'Gestão de Portfólio', 'Negociação de Contratos', 'Inovação Comercial'],
-      description: 'Liderança executiva'
+      description: 'Liderança executiva',
+      type: 'CCO',
+      requiredCompetencies: ['Visão Estratégica', 'Liderança Transformacional', 'Gestão de Portfólio', 'Negociação de Contratos']
     }
   ],
   competencies: [
-    'Prospecção',
+    'Prospecção Inbound',
+    'Prospecção Ativa (Outbound)',
     'Negociação Básica',
+    'Negociação Avançada',
     'CRM',
+    'CRM Avançado',
     'Comunicação',
-    'Pipeline Management',
+    'Comunicação Executiva',
     'Vendas Consultivas',
+    'Gestão de Contas',
     'Excel Avançado',
-    'Liderança Comercial'
+    'Liderança de Equipes',
+    'Inglês Fluente'
   ],
   courses: {
     free: [
@@ -122,7 +140,7 @@ export const careerPath = {
         title: 'Gestão Comercial Avançada',
         value: 399,
         certificate: true,
-        competency: 'Liderança Comercial',
+        competency: 'Liderança de Equipes',
         duration: '40h',
         weight: 15,
         url: 'https://www.fgv.br'
@@ -141,10 +159,10 @@ export const careerPath = {
       {
         id: 6,
         institution: 'G4 Educação',
-        title: 'Alta Performance em Vendas',
+        title: 'Alta Performance em Prospecção Outbound',
         value: 1490,
         certificate: true,
-        competency: 'Prospecção',
+        competency: 'Prospecção Ativa (Outbound)',
         duration: '50h',
         weight: 25,
         url: 'https://www.g4educacao.com.br'
@@ -155,7 +173,7 @@ export const careerPath = {
         title: 'Geração de Demanda',
         value: 297,
         certificate: true,
-        competency: 'Pipeline Management',
+        competency: 'Prospecting Outbound',
         duration: '25h',
         weight: 12,
         url: 'https://www.rockuniversity.com.br'
@@ -166,7 +184,7 @@ export const careerPath = {
         title: 'CRM e Pipeline Comercial',
         value: 39,
         certificate: true,
-        competency: 'CRM',
+        competency: 'CRM Avançado',
         duration: '20h',
         weight: 10,
         url: 'https://www.alura.com.br'
@@ -177,7 +195,7 @@ export const careerPath = {
         title: 'Inglês Business Sales',
         value: 'Sob consulta',
         certificate: true,
-        competency: 'Comunicação',
+        competency: 'Inglês Fluente',
         duration: '60h',
         weight: 18,
         url: 'https://www.culturainglesa.com.br'
