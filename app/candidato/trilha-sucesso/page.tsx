@@ -7,24 +7,34 @@ import { careerPath } from '../../data/career-path'
 export default function TrilhaSucessoPage() {
   const [selectedCompetency, setSelectedCompetency] = useState<string | null>(null)
   const [showCourses, setShowCourses] = useState(false)
-  const [completedCompetencies, setCompletedCompetencies] = useState<string[]>([])
+  const [completedCourses, setCompletedCourses] = useState<number[]>([])
 
-  const currentProgress = (completedCompetencies.length / careerPath.competencies.length) * 100
+  // Calcular progresso baseado no peso dos cursos
+  const maxWeight = 200 // Peso máximo teórico para 100%
+  const currentWeight = completedCourses.reduce((sum, courseId) => {
+    const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === courseId)
+    return sum + (course?.weight || 0)
+  }, 0)
+  const currentProgress = Math.min((currentWeight / maxWeight) * 100, 100)
 
   const handleCompetencyClick = (competency: string) => {
     setSelectedCompetency(competency)
     setShowCourses(true)
   }
 
-  const handleCompleteCourse = (competency: string) => {
-    if (!completedCompetencies.includes(competency)) {
-      setCompletedCompetencies([...completedCompetencies, competency])
+  const handleCompleteCourse = (courseId: number) => {
+    if (!completedCourses.includes(courseId)) {
+      setCompletedCourses([...completedCourses, courseId])
     }
   }
 
   const getCoursesForCompetency = (competency: string) => {
     const allCourses = [...careerPath.courses.free, ...careerPath.courses.paid] as any[]
     return allCourses.filter(course => course.competency === competency)
+  }
+
+  const handleRedirectToCourse = (url: string) => {
+    window.open(url, '_blank')
   }
 
   return (
@@ -46,42 +56,59 @@ export default function TrilhaSucessoPage() {
           <p className="text-xl text-gray-600">Seu plano real para crescer profissionalmente</p>
         </div>
 
-        {/* BLOCO 1: SUA POSIÇÃO ATUAL */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        {/* BLOCO 1: POSIÇÃO ATUAL (SDR JUNIOR) */}
+        <div className="mb-12">
           <div className="card border-4 border-candidate-primary">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-candidate-primary mb-4">📍 SUA POSIÇÃO ATUAL</h2>
-              <div className="text-4xl font-bold text-gray-900 mb-2">{careerPath.currentPosition.title}</div>
-              <div className="text-3xl font-bold text-candidate-primary mb-4">
-                R$ {careerPath.currentPosition.salary.toLocaleString('pt-BR')}
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-2xl font-bold text-candidate-primary mb-4">📍 VOCÊ ESTÁ EM</h2>
+                <div className="text-4xl font-bold text-gray-900 mb-2">{careerPath.currentPosition.title}</div>
+                <div className="text-lg text-gray-600 mb-4">{careerPath.currentPosition.subtitle}</div>
+                <div className="text-3xl font-bold text-candidate-primary mb-4">
+                  R$ {careerPath.currentPosition.salary.toLocaleString('pt-BR')}
+                </div>
+                <p className="text-gray-600 mb-6">{careerPath.currentPosition.description}</p>
               </div>
-              <p className="text-gray-600">{careerPath.currentPosition.description}</p>
-            </div>
-          </div>
 
-          {/* BLOCO 2: ONDE VOCÊ PODE CHEGAR */}
-          <div className="card border-4 border-green-500">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-green-600 mb-4">🎯 ONDE VOCÊ PODE CHEGAR</h2>
-              <div className="text-4xl font-bold text-gray-900 mb-2">{careerPath.targetPosition.title}</div>
-              <div className="text-3xl font-bold text-green-600 mb-4">
-                R$ {careerPath.targetPosition.salary.toLocaleString('pt-BR')}+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">✓ Competências Necessárias:</h3>
+                <div className="space-y-2">
+                  {careerPath.currentPosition.competencies.map((comp, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span className="text-gray-700">{comp}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Progresso</h3>
+                  <div className="w-full bg-gray-200 rounded-full h-12 overflow-hidden flex items-center justify-center">
+                    <div
+                      className="bg-gradient-to-r from-candidate-primary to-green-500 h-full transition-all duration-500 flex items-center justify-center text-white font-bold text-lg"
+                      style={{ width: `${careerPath.currentPosition.progress}%` }}
+                    >
+                      {careerPath.currentPosition.progress}%
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">Concluído</p>
+                </div>
               </div>
-              <p className="text-gray-600">{careerPath.targetPosition.description}</p>
             </div>
           </div>
         </div>
 
-        {/* BLOCO 3: MAPA DE EVOLUÇÃO */}
+        {/* BLOCO 2: MAPA DE EVOLUÇÃO */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">📈 MAPA DE EVOLUÇÃO</h2>
           <div className="space-y-4">
             {careerPath.evolutionPath.map((position, index) => (
-              <div key={position.id} className="card">
+              <div key={position.id} className={`card ${index === 0 ? 'border-4 border-candidate-primary bg-blue-50' : 'border-2'}`}>
                 <div className="flex items-center gap-6">
                   <div className="text-4xl font-bold text-candidate-primary w-12 text-center">{index + 1}</div>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{position.title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-1">{position.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{position.subtitle}</p>
                     <p className="text-gray-600 mb-2">{position.description}</p>
                     <div className="text-lg font-semibold text-candidate-primary mb-2">
                       R$ {position.salary.toLocaleString('pt-BR')}
@@ -90,11 +117,7 @@ export default function TrilhaSucessoPage() {
                       {position.competencies.map((comp) => (
                         <span
                           key={comp}
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            completedCompetencies.includes(comp)
-                              ? 'bg-green-200 text-green-800'
-                              : 'bg-gray-200 text-gray-800'
-                          }`}
+                          className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-200 text-gray-800"
                         >
                           {comp}
                         </span>
@@ -115,7 +138,7 @@ export default function TrilhaSucessoPage() {
           </div>
         </div>
 
-        {/* BLOCO 4: COMPETÊNCIAS NECESSÁRIAS */}
+        {/* BLOCO 3: COMPETÊNCIAS NECESSÁRIAS */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">💡 COMPETÊNCIAS NECESSÁRIAS</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -123,23 +146,17 @@ export default function TrilhaSucessoPage() {
               <button
                 key={competency}
                 onClick={() => handleCompetencyClick(competency)}
-                className={`card text-center py-6 cursor-pointer transition transform hover:scale-105 ${
-                  completedCompetencies.includes(competency)
-                    ? 'border-4 border-green-500 bg-green-50'
-                    : 'border-2 border-candidate-primary hover:border-4'
-                }`}
+                className="card text-center py-6 cursor-pointer transition transform hover:scale-105 border-2 border-candidate-primary hover:border-4"
               >
-                <div className="text-3xl mb-2">{completedCompetencies.includes(competency) ? '✅' : '📚'}</div>
+                <div className="text-3xl mb-2">📚</div>
                 <div className="font-bold text-gray-900">{competency}</div>
-                <div className="text-sm text-gray-600 mt-2">
-                  {completedCompetencies.includes(competency) ? 'Concluída' : 'Clique para ver cursos'}
-                </div>
+                <div className="text-sm text-gray-600 mt-2">Clique para ver cursos</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* BARRA DE PROGRESSO */}
+        {/* BARRA DE PROGRESSO GERAL */}
         <div className="card mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">📊 PROGRESSO PARA DIRETOR COMERCIAL</h2>
           <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
@@ -151,15 +168,14 @@ export default function TrilhaSucessoPage() {
             </div>
           </div>
           <p className="text-gray-600 mt-4">
-            Você completou <strong>{completedCompetencies.length}</strong> de{' '}
-            <strong>{careerPath.competencies.length}</strong> competências necessárias.
+            Você completou <strong>{completedCourses.length}</strong> curso(s). Peso acumulado: <strong>{currentWeight}</strong> / {maxWeight}
           </p>
         </div>
 
         {/* MODAL DE CURSOS */}
         {showCourses && selectedCompetency && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
               <div className="p-6 border-b-2 border-candidate-primary flex justify-between items-center sticky top-0 bg-white">
                 <h3 className="text-2xl font-bold text-gray-900">Cursos para: {selectedCompetency}</h3>
                 <button
@@ -172,55 +188,82 @@ export default function TrilhaSucessoPage() {
 
               <div className="p-6">
                 {/* CURSOS GRATUITOS */}
-                <h4 className="text-xl font-bold text-green-600 mb-4">🎁 CURSOS GRATUITOS</h4>
+                <h4 className="text-xl font-bold text-green-600 mb-4">🎁 CURSOS GRATUITOS (Peso: 3-5%)</h4>
                 <div className="space-y-4 mb-8">
                   {getCoursesForCompetency(selectedCompetency)
-                    .filter((course) => careerPath.courses.free.includes(course))
-                    .map((course) => (
+                    .filter((course: any) => careerPath.courses.free.includes(course))
+                    .map((course: any) => (
                       <div key={course.id} className="card border-2 border-green-200">
                         <div className="flex justify-between items-start mb-2">
-                          <div>
+                          <div className="flex-1">
                             <h5 className="text-lg font-bold text-gray-900">{course.title}</h5>
                             <p className="text-sm text-gray-600">{course.institution}</p>
+                            <p className="text-sm text-gray-600 mt-1">⏱️ {course.duration}</p>
+                            <p className="text-sm text-gray-600">
+                              {course.certificate ? '✓ Com certificado' : '✗ Sem certificado'}
+                            </p>
+                            <p className="text-xs text-candidate-primary font-semibold mt-2">Peso: {course.weight}%</p>
                           </div>
-                          <button
-                            onClick={() => handleCompleteCourse(selectedCompetency)}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                          >
-                            {completedCompetencies.includes(selectedCompetency) ? '✓ Concluído' : 'Marcar Concluído'}
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRedirectToCourse(course.url)}
+                              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 whitespace-nowrap"
+                            >
+                              Acessar Curso
+                            </button>
+                            <button
+                              onClick={() => handleCompleteCourse(course.id)}
+                              className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                                completedCourses.includes(course.id)
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              }`}
+                            >
+                              {completedCourses.includes(course.id) ? '✓ Concluído' : 'Marcar Concluído'}
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">⏱️ {course.duration}</p>
-                        <p className="text-sm text-gray-600">
-                          {course.certificate ? '✓ Com certificado' : '✗ Sem certificado'}
-                        </p>
                       </div>
                     ))}
                 </div>
 
                 {/* CURSOS PAGOS */}
-                <h4 className="text-xl font-bold text-candidate-primary mb-4">💳 CURSOS PAGOS CERTIFICADOS</h4>
+                <h4 className="text-xl font-bold text-candidate-primary mb-4">💳 CURSOS PAGOS CERTIFICADOS (Peso: 10-25%)</h4>
                 <div className="space-y-4">
                   {getCoursesForCompetency(selectedCompetency)
-                    .filter((course) => careerPath.courses.paid.includes(course))
-                    .map((course) => (
+                    .filter((course: any) => careerPath.courses.paid.includes(course))
+                    .map((course: any) => (
                       <div key={course.id} className="card border-2 border-candidate-primary">
                         <div className="flex justify-between items-start mb-2">
-                          <div>
+                          <div className="flex-1">
                             <h5 className="text-lg font-bold text-gray-900">{course.title}</h5>
                             <p className="text-sm text-gray-600">{course.institution}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-candidate-primary">
+                            <p className="text-sm text-gray-600 mt-1">⏱️ {course.duration}</p>
+                            <p className="text-sm text-gray-600">✓ Com certificado</p>
+                            <p className="text-lg font-bold text-candidate-primary mt-2">
                               {typeof course.value === 'number' ? `R$ ${course.value}` : course.value}
                             </p>
-                            <button className="mt-2 px-4 py-2 bg-candidate-primary text-white rounded-lg hover:bg-opacity-90">
+                            <p className="text-xs text-candidate-primary font-semibold mt-2">Peso: {course.weight}%</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRedirectToCourse(course.url)}
+                              className="px-4 py-2 bg-candidate-primary text-white rounded-lg hover:bg-opacity-90 whitespace-nowrap"
+                            >
                               Ver Curso
+                            </button>
+                            <button
+                              onClick={() => handleCompleteCourse(course.id)}
+                              className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                                completedCourses.includes(course.id)
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              }`}
+                            >
+                              {completedCourses.includes(course.id) ? '✓ Concluído' : 'Marcar Concluído'}
                             </button>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">⏱️ {course.duration}</p>
-                        <p className="text-sm text-gray-600">✓ Com certificado</p>
                       </div>
                     ))}
                 </div>
