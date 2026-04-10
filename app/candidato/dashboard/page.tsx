@@ -79,8 +79,8 @@ export default function CandidateDashboard() {
             <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               💰 Meus Ganhos
             </Link>
-            <Link href="/candidato/trilha-sucesso" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              🚀 TRILHA DE SUCESSO
+            <Link href="/candidato/jornada-sucesso" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+              🚀 Jornada de Sucesso
             </Link>
             <Link href="/candidato/learning" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
               📚 Aprendizado
