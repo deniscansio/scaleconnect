@@ -55,6 +55,7 @@ function SignupForm() {
         payload.companyName = formData.companyName
       }
 
+      // Usando a rota correta que acabamos de criar
       const response = await fetch('/api/auth/cadastro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,9 +69,10 @@ function SignupForm() {
         return
       }
 
-      // Salvar token
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('userType', data.userType)
+      // Salvar token com a chave correta
+      localStorage.setItem('scaleconnect_token', data.token)
+      localStorage.setItem('scaleconnect_userType', data.userType)
+      localStorage.setItem('scaleconnect_user', JSON.stringify(data.user))
 
       // Redirecionar
       if (userType === 'CANDIDATE') {

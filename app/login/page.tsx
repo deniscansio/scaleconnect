@@ -32,9 +32,10 @@ export default function LoginPage() {
         return
       }
 
-      // Salvar token no localStorage
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('userType', data.userType)
+      // Salvar token no localStorage com a chave correta
+      localStorage.setItem('scaleconnect_token', data.token)
+      localStorage.setItem('scaleconnect_userType', data.userType)
+      localStorage.setItem('scaleconnect_user', JSON.stringify(data.user))
 
       // Redirecionar baseado no tipo de usuário
       if (data.userType === 'CANDIDATE') {
@@ -59,7 +60,7 @@ export default function LoginPage() {
             <Image src={companyConfig.logo} alt="Logo" width={60} height={60} className="h-16 w-16 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-candidate-primary mb-2">ScaleConnect</h1>
             <p className="text-xs text-gray-500 mb-4">by {companyConfig.name}</p>
-            <p className="text-gray-600">Faca login na sua conta</p>
+            <p className="text-gray-600">Faça login na sua conta</p>
           </div>
 
           {error && (
