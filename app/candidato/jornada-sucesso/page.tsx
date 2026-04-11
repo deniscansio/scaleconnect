@@ -1,54 +1,69 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
+import React, { useState, useRef, useEffect } from 'react'
 import { careerPath as careerPathData } from '@/app/data/career-path'
-import { companyConfig } from '@/app/config/company'
 
-export default function JornadaSucesso() {
-  const [completedCourses, setCompletedCourses] = useState<{ [key: string]: { completedAt: string; certificateUrl: string | null } }>({})
-  const [uploadingCourseId, setUploadingCourseId] = useState<string | null>(null)
+export default function JornadaSucessoPage() {
+  const [completedCourses, setCompletedCourses] = useState<Record<string, { completedAt: string; certificateUrl?: string }>>({})
+  const [uploadingCourseId, setUploadingCourseId] = useState<number | null>(null)
   const [viewingCertificate, setViewingCertificate] = useState<string | null>(null)
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement }>({})
+  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({})
 
-  // Simular dados do candidato
-  const currentCareerLevel = careerPathData.evolutionPath[0]
-  const targetCareerLevel = careerPathData.targetPosition
+  // Carregar progresso do localStorage ao iniciar
+  useEffect(() => {
+    const saved = localStorage.getItem('scaleconnect_completed_courses')
+    if (saved) {
+      try {
+        setCompletedCourses(JSON.parse(saved))
+      } catch (e) {
+        console.error('Erro ao carregar cursos concluídos', e)
+      }
+    }
+  }, [])
+
+  // Salvar progresso no localStorage sempre que mudar
+  useEffect(() => {
+    if (Object.keys(completedCourses).length > 0) {
+      localStorage.setItem('scaleconnect_completed_courses', JSON.stringify(completedCourses))
+    }
+  }, [completedCourses])
+
+  const currentCareerLevel = careerPathData.evolutionPath[0] // SDR Junior
+  const targetCareerLevel = careerPathData.evolutionPath[careerPathData.evolutionPath.length - 1] // Diretor Comercial
 
   const isCourseCompleted = (courseId: string) => {
-    return courseId in completedCourses
+    return !!completedCourses[courseId]
   }
 
   const getCompletedCourseInfo = (courseId: string) => {
-    return completedCourses[courseId] || null
+    return completedCourses[courseId]
   }
 
-  const handleUploadClick = (courseId: string) => {
-    fileInputRefs.current[courseId]?.click()
-  }
-
-  const handleFileSelect = (courseId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = (courseId: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
 
     setUploadingCourseId(courseId)
     
     // Simular upload
     setTimeout(() => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const timestamp = new Date().toLocaleDateString('pt-BR')
-        setCompletedCourses(prev => ({
-          ...prev,
-          [courseId]: {
-            completedAt: timestamp,
-            certificateUrl: reader.result as string
-          }
-        }))
-        setUploadingCourseId(null)
-      }
-      reader.readAsDataURL(file)
-    }, 1000)
+      const now = new Date().toLocaleDateString('pt-BR')
+      const fakeUrl = URL.createObjectURL(file)
+      
+      setCompletedCourses(prev => ({
+        ...prev,
+        [courseId.toString()]: {
+          completedAt: now,
+          certificateUrl: fakeUrl
+        }
+      }))
+      setUploadingCourseId(null)
+      alert('Certificado enviado com sucesso! Curso marcado como concluído.')
+    }, 1500)
+  }
+
+  const handleUploadClick = (courseId: number) => {
+    fileInputRefs.current[courseId]?.click()
   }
 
   const handleRedirectToCourse = (url: string) => {
@@ -59,10 +74,6 @@ export default function JornadaSucesso() {
     const totalCompetencies = currentCareerLevel.requiredCompetencies.length
     const completedCount = Object.keys(completedCourses).length
     return totalCompetencies > 0 ? Math.round((completedCount / totalCompetencies) * 100) : 0
-  }
-
-  const getAllCourses = () => {
-    return careerPathData.competencies || []
   }
 
   const getCompetencyProgress = (competency: string) => {
@@ -97,14 +108,14 @@ export default function JornadaSucesso() {
               <p className="text-gray-600 text-sm font-semibold mb-2">📍 SUA POSIÇÃO ATUAL</p>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{currentCareerLevel.title}</h2>
               <p className="text-gray-600 mb-4">{currentCareerLevel.description}</p>
-              <p className="text-orange-600 text-2xl font-bold">{currentCareerLevel.salary}</p>
+              <p className="text-orange-600 text-2xl font-bold">R$ {currentCareerLevel.salary.toLocaleString('pt-BR')}</p>
               <p className="text-green-600 font-semibold mt-2">✓ Concluído</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm font-semibold mb-2">🎯 ONDE VOCÊ PODE CHEGAR</p>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{targetCareerLevel.title}</h2>
               <p className="text-gray-600 mb-4">{targetCareerLevel.description}</p>
-              <p className="text-orange-600 text-2xl font-bold">{targetCareerLevel.salary}</p>
+              <p className="text-orange-600 text-2xl font-bold">R$ {targetCareerLevel.salary.toLocaleString('pt-BR')}+</p>
               <p className="text-gray-600 font-semibold mt-2">Seu objetivo de carreira</p>
             </div>
           </div>
@@ -120,126 +131,66 @@ export default function JornadaSucesso() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500"
+                className="bg-orange-500 h-full transition-all duration-500 ease-out"
                 style={{ width: `${calculateCareerProgress()}%` }}
               />
             </div>
-            <p className="text-gray-600 text-sm mt-2">
-              {Object.keys(completedCourses).length} de {currentCareerLevel.requiredCompetencies.length} competências desenvolvidas
-            </p>
           </div>
         </div>
 
-        {/* Mapa de Evolução */}
+        {/* Trilhas de Competências */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">📈 MAPA DE EVOLUÇÃO</h2>
-          
-          {/* Cargo Atual Expandido */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8 border-l-4 border-green-500">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-                ✓
-              </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900">{currentCareerLevel.title}</h3>
-                <p className="text-gray-600 text-sm mt-1">{currentCareerLevel.description}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-orange-600 text-2xl font-bold">{currentCareerLevel.salary}</p>
-                <p className="text-green-600 font-semibold text-sm mt-1">✓ Concluído</p>
-              </div>
-            </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">🛠️ Competências Necessárias</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {currentCareerLevel.requiredCompetencies.map((comp) => {
+              const progress = getCompetencyProgress(comp)
+              const isDeveloped = progress === 100
+              
+              return (
+                <div key={comp} className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-lg">{comp}</h4>
+                      <p className="text-sm text-gray-500">Competência essencial para {currentCareerLevel.subtitle}</p>
+                    </div>
+                    {isDeveloped ? (
+                      <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">DESENVOLVIDA</span>
+                    ) : (
+                      <span className="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">EM DESENVOLVIMENTO</span>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Progresso</span>
+                      <span className="font-bold text-orange-600">{progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div 
+                        className="bg-orange-500 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
 
-            {/* Barra de Progresso do Cargo Atual */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700 font-semibold">Progresso</span>
-                <span className="text-orange-600 font-bold">100%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-400 to-orange-600 h-full w-full" />
-              </div>
-            </div>
-
-            {/* Competências Necessárias */}
-            <div>
-              <p className="text-gray-700 font-semibold mb-3">Competências Necessárias:</p>
-              <div className="flex flex-wrap gap-2">
-                {currentCareerLevel.requiredCompetencies.map((comp, idx) => (
-                  <span key={idx} className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                    ✓ {comp}
-                  </span>
-                ))}
-              </div>
-            </div>
+                  {!isDeveloped && (
+                    <button 
+                      onClick={() => {
+                        const element = document.getElementById(`competency-${comp}`)
+                        element?.scrollIntoView({ behavior: 'smooth' })
+                      }}
+                      className="mt-6 w-full py-2 border-2 border-orange-500 text-orange-500 font-bold rounded-lg hover:bg-orange-50 transition text-sm"
+                    >
+                      VER CURSOS PARA ESTA COMPETÊNCIA
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
-
-          {/* Próximos Cargos */}
-          {careerPathData.evolutionPath.slice(1).map((level, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow-lg p-8 mb-8 border-l-4 border-gray-300">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gray-900 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-                  {idx + 2}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{level.title}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{level.description}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-orange-600 text-2xl font-bold">{level.salary}</p>
-                </div>
-              </div>
-
-              {/* Barra de Progresso */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-700 font-semibold">Progresso</span>
-                  <span className="text-orange-600 font-bold">{getCompetencyProgress(level.requiredCompetencies[0])}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500"
-                    style={{ width: `${getCompetencyProgress(level.requiredCompetencies[0])}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Competências Necessárias */}
-              <div>
-                <p className="text-gray-700 font-semibold mb-3">Competências Necessárias:</p>
-                <div className="flex flex-wrap gap-2">
-                  {level.requiredCompetencies.map((comp, cidx) => {
-                    const isDevInCurrentLevel = currentCareerLevel.requiredCompetencies.includes(comp)
-                    const isDevInThisLevel = isCompetencyDeveloped(comp)
-                    
-                    if (isDevInCurrentLevel && isDevInThisLevel) {
-                      return (
-                        <span key={cidx} className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                          ✓ {comp}
-                        </span>
-                      )
-                    } else {
-                      return (
-                        <button
-                          key={cidx}
-                          onClick={() => {
-                            const element = document.getElementById(`competency-${comp}`)
-                            element?.scrollIntoView({ behavior: 'smooth' })
-                          }}
-                          className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full hover:bg-blue-200 transition cursor-pointer"
-                        >
-                          {comp}
-                        </button>
-                      )
-                    }
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
-        {/* Seção de Cursos - Vitrine */}
+        {/* Seção de Cursos - Grid Horizontal de Cards Verticais */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">🎓 Cursos e Treinamentos Disponíveis</h2>
           
@@ -247,13 +198,13 @@ export default function JornadaSucesso() {
             const allCourses = [...(careerPathData.courses?.free || []), ...(careerPathData.courses?.paid || [])]
             const competencies = Array.from(new Set(allCourses.map(c => c.competency)))
             return competencies.length > 0 && (
-            <div id="competency-cursos">
+            <div id="competency-cursos" className="space-y-12">
               {competencies.map((competency) => {
                 const courses = allCourses.filter(c => c.competency === competency)
                 const isDevCompetency = isCompetencyDeveloped(competency)
                 
                 return (
-                  <div key={competency} className="mb-12" id={`competency-${competency}`}>
+                  <div key={competency} id={`competency-${competency}`}>
                     <div className="flex items-center gap-3 mb-6">
                       <span className="text-2xl">📚</span>
                       <h3 className="text-xl font-bold text-gray-900">
@@ -262,59 +213,60 @@ export default function JornadaSucesso() {
                       </h3>
                     </div>
 
-                    {/* Lista de Cursos - Formato Horizontal (Row) */}
-                    <div className="flex flex-col gap-4 w-full">
+                    {/* Grid de Cards Verticais Lado a Lado */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {courses.map((course: any) => {
                         const isCompleted = isCourseCompleted(course.id.toString())
                         const completedInfo = getCompletedCourseInfo(course.id.toString())
 
                         return (
-                          <div key={course.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col md:flex-row items-center border border-gray-100 w-full">
-                            {/* Lado Esquerdo - Icone (Horizontal no Desktop) */}
-                            <div className="bg-gradient-to-br from-orange-400 to-orange-600 w-full md:w-48 h-32 md:h-auto self-stretch flex items-center justify-center text-white text-4xl shrink-0">
+                          <div key={course.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100">
+                            {/* Topo do Card - Icone/Destaque */}
+                            <div className="bg-gradient-to-br from-orange-400 to-orange-600 h-32 flex items-center justify-center text-white text-4xl shrink-0">
                               🎓
                             </div>
                             
-                            {/* Conteudo Central - Informacoes (Horizontal) */}
-                            <div className="p-6 flex-1 flex flex-col md:flex-row items-center justify-between gap-6 w-full">
-                              <div className="flex-1 text-center md:text-left">
-                                {/* Instituicao e Titulo */}
-                                <div className="flex flex-col md:flex-row items-center gap-2 mb-2">
-                                  <span className="inline-block bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                    {course.institution}
-                                  </span>
-                                  {isCompleted && (
-                                    <span className="text-green-600 text-xs font-bold flex items-center gap-1">
-                                      ✓ Concluído
-                                    </span>
-                                  )}
+                            {/* Conteudo do Card */}
+                            <div className="p-5 flex-1 flex flex-col">
+                              {/* Instituicao como Badge */}
+                              <div className="mb-3">
+                                <span className="inline-block bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  {course.institution}
+                                </span>
+                              </div>
+                              
+                              {/* Titulo do Curso */}
+                              <h4 className="font-bold text-gray-900 mb-4 text-base line-clamp-2 h-12">{course.title}</h4>
+                              
+                              {/* Informacoes do Curso */}
+                              <div className="space-y-3 text-sm mb-6 flex-1">
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <span className="text-orange-500">⏱️</span>
+                                  <span>{course.duration}</span>
                                 </div>
-                                <h4 className="font-bold text-gray-900 text-lg mb-2">{course.title}</h4>
-                                
-                                {/* Badges de Informacao */}
-                                <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-orange-500">⏱️</span>
-                                    <span>{course.duration}</span>
+                                {course.certificate && (
+                                  <div className="flex items-center gap-2 text-green-600">
+                                    <span className="text-green-500">📜</span>
+                                    <span>Certificado Incluso</span>
                                   </div>
-                                  {course.certificate && (
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-green-500">📜</span>
-                                      <span>Certificado</span>
-                                    </div>
-                                  )}
-                                  <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                                    <span className="text-blue-500">💰</span>
-                                    <span>{typeof course.value === 'number' ? `R$ ${course.value}` : course.value}</span>
-                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 text-gray-900 font-bold">
+                                  <span className="text-blue-500">💰</span>
+                                  <span>{typeof course.value === 'number' ? `R$ ${course.value}` : course.value}</span>
                                 </div>
                               </div>
+                              
+                              {isCompleted && completedInfo && (
+                                <div className="text-xs text-green-600 mb-4 p-2 bg-green-50 rounded-lg border border-green-200 text-center">
+                                  ✓ Concluído em {completedInfo.completedAt}
+                                </div>
+                              )}
 
-                              {/* Lado Direito - Botoes de Acao */}
-                              <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full sm:w-auto min-w-[180px]">
+                              {/* Botoes na Base do Card */}
+                              <div className="flex flex-col gap-2 mt-auto">
                                 <button
                                   onClick={() => handleRedirectToCourse(course.url)}
-                                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm transition shadow-sm"
+                                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm transition shadow-sm"
                                 >
                                   Acessar Curso
                                 </button>
@@ -324,7 +276,7 @@ export default function JornadaSucesso() {
                                     {completedInfo?.certificateUrl && (
                                       <button
                                         onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
-                                        className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold text-sm transition shadow-sm"
+                                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold text-sm transition shadow-sm"
                                       >
                                         👁️ Ver Certificado
                                       </button>
@@ -344,7 +296,7 @@ export default function JornadaSucesso() {
                                     <button
                                       onClick={() => handleUploadClick(course.id)}
                                       disabled={uploadingCourseId === course.id}
-                                      className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                                      className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
                                     >
                                       {uploadingCourseId === course.id ? '⏳ Enviando...' : '📤 Upload Certificado'}
                                     </button>
@@ -365,45 +317,49 @@ export default function JornadaSucesso() {
         </div>
 
         {/* Próximos Passos */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">📋 Próximos Passos para Avançar:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link href="/candidato/jobs" className="p-6 border-2 border-orange-400 rounded-lg hover:bg-orange-50 transition">
-              <div className="text-3xl mb-3">📋</div>
-              <h4 className="font-bold text-gray-900 mb-2">Candidatar-se a Vagas</h4>
-              <p className="text-gray-600 text-sm">Encontre vagas alinhadas com sua jornada</p>
-            </Link>
-            <Link href="/candidato/opportunities" className="p-6 border-2 border-blue-400 rounded-lg hover:bg-blue-50 transition">
-              <div className="text-3xl mb-3">💼</div>
-              <h4 className="font-bold text-gray-900 mb-2">Explorar Oportunidades</h4>
-              <p className="text-gray-600 text-sm">Ganhe comissões representando produtos e serviços</p>
-            </Link>
+        <div className="bg-gray-900 text-white rounded-xl p-8 shadow-xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div>
+              <h3 className="text-2xl font-bold mb-2">Próximo Objetivo: {careerPathData.evolutionPath[1].title}</h3>
+              <p className="text-gray-400">Desenvolva as competências acima para desbloquear seu próximo nível salarial de R$ {careerPathData.evolutionPath[1].salary.toLocaleString('pt-BR')}</p>
+            </div>
+            <div className="shrink-0">
+              <div className="text-center">
+                <p className="text-orange-500 font-bold text-4xl mb-1">+{Math.round(((careerPathData.evolutionPath[1].salary / currentCareerLevel.salary) - 1) * 100)}%</p>
+                <p className="text-sm text-gray-400 uppercase tracking-wider">Aumento Salarial</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Modal de Visualização de Certificado */}
       {viewingCertificate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-auto">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-gray-900">Certificado</h3>
-              <button
+              <h3 className="font-bold text-gray-900">Seu Certificado</h3>
+              <button 
                 onClick={() => setViewingCertificate(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="p-2 hover:bg-gray-100 rounded-full transition"
               >
                 ✕
               </button>
             </div>
-            <div className="p-4">
-              {viewingCertificate.startsWith('data:image') ? (
-                <img src={viewingCertificate} alt="Certificado" className="w-full" />
-              ) : (
-                <div className="text-center text-gray-600">
-                  <p>Arquivo PDF</p>
-                  <p className="text-sm mt-2">Visualização de PDF não suportada neste navegador</p>
-                </div>
-              )}
+            <div className="flex-1 overflow-auto p-4 bg-gray-100 flex items-center justify-center">
+              <img 
+                src={viewingCertificate} 
+                alt="Certificado" 
+                className="max-w-full h-auto shadow-2xl"
+              />
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <button 
+                onClick={() => setViewingCertificate(null)}
+                className="px-6 py-2 bg-gray-900 text-white rounded-lg font-bold"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
