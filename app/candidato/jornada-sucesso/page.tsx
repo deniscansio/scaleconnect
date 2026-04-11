@@ -263,12 +263,7 @@ export default function JornadaSucesso() {
                     </div>
 
                     {/* Grid de Cursos - Vitrine */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                      gap: '1.5rem',
-                      width: '100%'
-                    }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
                       {courses.map((course: any) => {
                         const isCompleted = isCourseCompleted(course.id.toString())
                         const completedInfo = getCompletedCourseInfo(course.id.toString())
