@@ -1,0 +1,6 @@
+import { drizzle } from 'drizzle-orm/tidb-serverless';
+import { connect } from '@tidbcloud/serverless';
+import * as schema from './schema/users';
+
+const client = connect({ url: process.env.DATABASE_URL });
+export const db = drizzle(client, { schema });

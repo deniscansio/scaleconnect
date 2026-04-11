@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 export default function CandidateProfilePage() {
   const [profile, setProfile] = useState({
@@ -28,20 +29,43 @@ export default function CandidateProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState(profile)
   const [photoPreview, setPhotoPreview] = useState(profile.profilePhoto)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Carregar dados do localStorage ao iniciar
+  // Carregar dados do backend ao iniciar
   useEffect(() => {
-    const savedProfile = localStorage.getItem('scaleconnect_candidate_profile')
-    if (savedProfile) {
+    const fetchProfile = async () => {
       try {
-        const parsed = JSON.parse(savedProfile)
-        setProfile(parsed)
-        setEditData(parsed)
-        setPhotoPreview(parsed.profilePhoto)
+        const token = localStorage.getItem('scaleconnect_token')
+        if (!token) {
+          setIsLoading(false)
+          return
+        }
+
+        const response = await axios.get('/api/candidate/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (response.data && response.data.id) {
+          const dbProfile = response.data
+          // Mesclar dados do banco com o estado inicial (para manter campos que podem estar vazios)
+          const mergedProfile = {
+            ...profile,
+            ...dbProfile,
+            // Converter skills de string JSON para array se necessário
+            skills: typeof dbProfile.skills === 'string' ? JSON.parse(dbProfile.skills) : profile.skills
+          }
+          setProfile(mergedProfile)
+          setEditData(mergedProfile)
+          setPhotoPreview(mergedProfile.profilePhoto)
+        }
       } catch (e) {
-        console.error('Erro ao carregar perfil', e)
+        console.error('Erro ao carregar perfil do servidor', e)
+      } finally {
+        setIsLoading(false)
       }
     }
+
+    fetchProfile()
   }, [])
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,20 +80,40 @@ export default function CandidateProfilePage() {
     }
   }
 
-  const handleSave = () => {
-    setProfile(editData)
-    localStorage.setItem('scaleconnect_candidate_profile', JSON.stringify(editData))
-    setIsEditing(false)
-    alert('Perfil atualizado com sucesso!')
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('scaleconnect_token')
+      if (!token) {
+        alert('Você precisa estar logado para salvar o perfil.')
+        return
+      }
+
+      // Preparar dados para o banco (converter skills para string JSON)
+      const dataToSave = {
+        ...editData,
+        skills: JSON.stringify(editData.skills)
+      }
+
+      await axios.post('/api/candidate/profile', dataToSave, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      setProfile(editData)
+      setIsEditing(false)
+      alert('Perfil salvo com sucesso no servidor!')
+    } catch (e) {
+      console.error('Erro ao salvar perfil no servidor', e)
+      alert('Erro ao salvar perfil. Tente novamente.')
+    }
   }
 
-  // Career progression suggestion
-  const careerProgression = [
-    { role: 'SDR', salary: 3500, yearsNeeded: 1, description: 'Sales Development Representative' },
-    { role: 'Account Executive', salary: 6500, yearsNeeded: 3, description: 'Fechar vendas' },
-    { role: 'Sales Manager', salary: 12000, yearsNeeded: 5, description: 'Gerenciar time' },
-    { role: 'Director of Sales', salary: 18000, yearsNeeded: 8, description: 'Estratégia de vendas' },
-  ]
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-xl font-semibold text-candidate-primary animate-pulse">Carregando seu perfil...</div>
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-candidate-light to-slate-50">
@@ -215,7 +259,7 @@ export default function CandidateProfilePage() {
                       <h2 className="text-3xl font-bold text-gray-900">{profile.fullName}</h2>
                       <p className="text-lg text-candidate-primary font-semibold mt-1">{profile.currentPosition} • {profile.yearsOfExperience} anos</p>
                       <p className="text-gray-600 mt-2">{profile.currentCompany}</p>
-                      <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
+                      <div className="flex gap-4 mt-3 text-sm text-gray-600">
                         <span>👤 {profile.age} anos</span>
                         <span>⚧ {profile.gender === 'M' ? 'Masculino' : 'Feminino'}</span>
                         <span>📧 {profile.email}</span>

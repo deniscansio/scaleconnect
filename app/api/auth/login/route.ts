@@ -1,27 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-
-// Mock database - em produção usar Prisma
-const users: any[] = [
-  {
-    id: '1',
-    email: 'candidato@test.com',
-    password: await bcrypt.hash('123456', 10),
-    fullName: 'João Candidato',
-    userType: 'CANDIDATE',
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    email: 'empresa@test.com',
-    password: await bcrypt.hash('123456', 10),
-    fullName: 'Maria Empresa',
-    companyName: 'Tech Solutions',
-    userType: 'COMPANY',
-    createdAt: new Date(),
-  },
-]
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema/users'
+import { eq } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,20 +17,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Buscar usuário
-    const user = users.find((u) => u.email === email)
+    // Buscar usuário no banco de dados real
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email)
+    })
+
     if (!user) {
       return NextResponse.json(
-        { message: 'Email ou senha incorretos' },
-        { status: 401 }
+        { message: 'Usuário não encontrado' },
+        { status: 404 }
       )
     }
 
     // Verificar senha
-    const passwordMatch = await bcrypt.compare(password, user.password)
-    if (!passwordMatch) {
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) {
       return NextResponse.json(
-        { message: 'Email ou senha incorretos' },
+        { message: 'Senha incorreta' },
         { status: 401 }
       )
     }
@@ -74,7 +59,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { message: 'Erro ao fazer login' },
+      { message: 'Erro ao realizar login no servidor' },
       { status: 500 }
     )
   }
