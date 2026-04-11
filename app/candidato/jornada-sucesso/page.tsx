@@ -262,101 +262,95 @@ export default function JornadaSucesso() {
                       </h3>
                     </div>
 
-                    {/* Grid de Cursos - Vitrine */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
+                    {/* Lista de Cursos - Formato Horizontal (Row) */}
+                    <div className="flex flex-col gap-4 w-full">
                       {courses.map((course: any) => {
                         const isCompleted = isCourseCompleted(course.id.toString())
                         const completedInfo = getCompletedCourseInfo(course.id.toString())
 
                         return (
-                          <div key={course.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden flex flex-col h-full border border-gray-100">
-                            {/* Topo do Card - Icone */}
-                            <div className="bg-gradient-to-r from-orange-400 to-orange-600 h-32 flex items-center justify-center text-white text-4xl">
+                          <div key={course.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col md:flex-row items-center border border-gray-100 w-full">
+                            {/* Lado Esquerdo - Icone (Horizontal no Desktop) */}
+                            <div className="bg-gradient-to-br from-orange-400 to-orange-600 w-full md:w-48 h-32 md:h-auto self-stretch flex items-center justify-center text-white text-4xl shrink-0">
                               🎓
                             </div>
                             
-                            {/* Conteudo do Card */}
-                            <div className="p-5 flex-1 flex flex-col">
-                              {/* Instituicao como Badge */}
-                              <div className="mb-3">
-                                <span className="inline-block bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                  {course.institution.split(' ')[0]}
-                                </span>
-                              </div>
-                              
-                              {/* Titulo do Curso */}
-                              <h4 className="font-bold text-gray-900 mb-4 text-base line-clamp-3">{course.title}</h4>
-                              
-                              {/* Informacoes do Curso */}
-                              <div className="space-y-2 text-sm mb-4 flex-1">
-                                <div className="flex items-center gap-2 text-gray-700">
-                                  <span>⏱️</span>
-                                  <span>{course.duration}</span>
-                                </div>
-                                {course.certificate && (
-                                  <div className="flex items-center gap-2 text-green-600">
-                                    <span>✓</span>
-                                    <span>Certificado</span>
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-2 text-orange-600 font-bold">
-                                  <span>💰</span>
-                                  <span>{typeof course.value === 'number' ? `R$ ${course.value}` : course.value}</span>
-                                </div>
-                              </div>
-                              
-                              {isCompleted && completedInfo && (
-                                <div className="text-xs text-green-600 mb-4 p-2 bg-green-50 rounded-lg border border-green-200">
-                                  ✓ Concluído em {completedInfo.completedAt}
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Botoes na Base */}
-                            <div className="border-t border-gray-100 p-4 flex flex-col gap-2">
-                              <button
-                                onClick={() => handleRedirectToCourse(course.url)}
-                                className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm transition"
-                              >
-                                Acessar
-                              </button>
-                              {isCompleted ? (
-                                <>
-                                  <button
-                                    disabled
-                                    className="w-full px-3 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm cursor-not-allowed"
-                                  >
-                                    ✓ Concluído
-                                  </button>
-                                  {completedInfo?.certificateUrl && (
-                                    <button
-                                      onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
-                                      className="w-full px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm transition"
-                                    >
-                                      👁️ Ver Certificado
-                                    </button>
+                            {/* Conteudo Central - Informacoes (Horizontal) */}
+                            <div className="p-6 flex-1 flex flex-col md:flex-row items-center justify-between gap-6 w-full">
+                              <div className="flex-1 text-center md:text-left">
+                                {/* Instituicao e Titulo */}
+                                <div className="flex flex-col md:flex-row items-center gap-2 mb-2">
+                                  <span className="inline-block bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                    {course.institution}
+                                  </span>
+                                  {isCompleted && (
+                                    <span className="text-green-600 text-xs font-bold flex items-center gap-1">
+                                      ✓ Concluído
+                                    </span>
                                   )}
-                                </>
-                              ) : (
-                                <>
-                                  <input
-                                    ref={(el) => {
-                                      if (el) fileInputRefs.current[course.id] = el
-                                    }}
-                                    type="file"
-                                    accept=".pdf,image/jpeg,image/png,image/jpg"
-                                    onChange={(e) => handleFileSelect(course.id, e)}
-                                    style={{ display: 'none' }}
-                                  />
-                                  <button
-                                    onClick={() => handleUploadClick(course.id)}
-                                    disabled={uploadingCourseId === course.id}
-                                    className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                  >
-                                    {uploadingCourseId === course.id ? '⏳ ...' : '📤 Upload'}
-                                  </button>
-                                </>
-                              )}
+                                </div>
+                                <h4 className="font-bold text-gray-900 text-lg mb-2">{course.title}</h4>
+                                
+                                {/* Badges de Informacao */}
+                                <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-orange-500">⏱️</span>
+                                    <span>{course.duration}</span>
+                                  </div>
+                                  {course.certificate && (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-green-500">📜</span>
+                                      <span>Certificado</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-1.5 font-bold text-gray-900">
+                                    <span className="text-blue-500">💰</span>
+                                    <span>{typeof course.value === 'number' ? `R$ ${course.value}` : course.value}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Lado Direito - Botoes de Acao */}
+                              <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full sm:w-auto min-w-[180px]">
+                                <button
+                                  onClick={() => handleRedirectToCourse(course.url)}
+                                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm transition shadow-sm"
+                                >
+                                  Acessar Curso
+                                </button>
+                                
+                                {isCompleted ? (
+                                  <>
+                                    {completedInfo?.certificateUrl && (
+                                      <button
+                                        onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
+                                        className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold text-sm transition shadow-sm"
+                                      >
+                                        👁️ Ver Certificado
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <input
+                                      ref={(el) => {
+                                        if (el) fileInputRefs.current[course.id] = el
+                                      }}
+                                      type="file"
+                                      accept=".pdf,image/jpeg,image/png,image/jpg"
+                                      onChange={(e) => handleFileSelect(course.id, e)}
+                                      style={{ display: 'none' }}
+                                    />
+                                    <button
+                                      onClick={() => handleUploadClick(course.id)}
+                                      disabled={uploadingCourseId === course.id}
+                                      className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                                    >
+                                      {uploadingCourseId === course.id ? '⏳ Enviando...' : '📤 Upload Certificado'}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )
