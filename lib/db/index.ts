@@ -1,6 +1,13 @@
-import { drizzle } from 'drizzle-orm/tidb-serverless';
-import { connect } from '@tidbcloud/serverless';
+import { drizzle } from 'drizzle-orm/mysql2';
+import mysql from 'mysql2/promise';
 import * as schema from './schema/users';
 
-const client = connect({ url: process.env.DATABASE_URL });
-export const db = drizzle(client, { schema });
+// Configuração de conexão com o banco de dados MySQL (TiDB Cloud)
+const connection = mysql.createPool({
+  uri: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: true
+  }
+});
+
+export const db = drizzle(connection, { schema, mode: 'default' });

@@ -7,12 +7,19 @@ import { eq } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, fullName, companyName, userType } = await request.json()
+    const body = await request.json()
+    const { email, password, fullName, companyName, userType } = body
 
-    // Validações
+    // Validação rigorosa dos campos obrigatórios
     if (!email || !password || !fullName || !userType) {
+      const missingFields = []
+      if (!email) missingFields.push('email')
+      if (!password) missingFields.push('senha')
+      if (!fullName) missingFields.push('nome completo')
+      if (!userType) missingFields.push('tipo de usuário')
+      
       return NextResponse.json(
-        { message: 'Email, senha, nome e tipo de usuário são obrigatórios' },
+        { message: `Os seguintes campos são obrigatórios: ${missingFields.join(', ')}` },
         { status: 400 }
       )
     }
@@ -24,16 +31,16 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: 'Email já cadastrado' },
+        { message: 'Este e-mail já está cadastrado. Tente fazer login.' },
         { status: 409 }
       )
     }
 
-    // Hash da senha
+    // Hash da senha para segurança permanente
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Criar usuário no banco de dados real
-    const result: any = await db.insert(users).values({
+    // Criar usuário no banco de dados MySQL
+    const [result] = await db.insert(users).values({
       email,
       password: hashedPassword,
       fullName,
@@ -41,18 +48,18 @@ export async function POST(request: NextRequest) {
       userType: userType as 'CANDIDATE' | 'COMPANY' | 'ADMIN',
     })
 
-    // No TiDB Serverless, o result contém o lastInsertId ou insertId
-    const userId = result.lastInsertId || result.insertId || Math.random().toString(36).substr(2, 9)
+    // No mysql2/drizzle, o result contém o insertId
+    const userId = result.insertId
 
-    // Gerar JWT
+    // Gerar JWT para autenticação segura
     const token = jwt.sign(
       { id: userId, email, userType },
-      process.env.JWT_SECRET || 'secret-key',
+      process.env.JWT_SECRET || 'scaleconnect-secret-2026',
       { expiresIn: '7d' }
     )
 
     return NextResponse.json({
-      message: 'Usuário criado com sucesso',
+      message: 'Conta criada com sucesso!',
       token,
       userType,
       user: {
@@ -62,10 +69,10 @@ export async function POST(request: NextRequest) {
         userType,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error)
     return NextResponse.json(
-      { message: 'Erro ao criar usuário no servidor' },
+      { message: 'Erro interno no servidor ao criar sua conta. Por favor, tente novamente em instantes.' },
       { status: 500 }
     )
   }
