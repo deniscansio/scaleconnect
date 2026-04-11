@@ -12,17 +12,25 @@ interface CompletedCourse {
 }
 
 export default function JornadaSucessoPage() {
-  const [selectedCompetency, setSelectedCompetency] = useState<string | null>(null)
-  const [showCourseModal, setShowCourseModal] = useState(false)
   const [completedCourses, setCompletedCourses] = useState<CompletedCourse[]>([])
   const [uploadingCourseId, setUploadingCourseId] = useState<number | null>(null)
   const [viewingCertificate, setViewingCertificate] = useState<string | null>(null)
   const [selectedCareerGoal, setSelectedCareerGoal] = useState<number>(6)
+  const [scrollToCompetency, setScrollToCompetency] = useState<string | null>(null)
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({})
+  const competencyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-  // Obter competências desenvolvidas (com base em cursos concluídos)
+  // Simular competências do perfil do candidato (em um cenário real, viriam do backend)
+  const candidateProfileCompetencies = new Set([
+    'Prospecção Inbound',
+    'Negociação Básica',
+    'CRM',
+    'Comunicação'
+  ])
+
+  // Obter competências desenvolvidas (com base em cursos concluídos + perfil)
   const getDevelopedCompetencies = (): Set<string> => {
-    const developed = new Set<string>()
+    const developed = new Set(candidateProfileCompetencies)
     completedCourses.forEach(cc => {
       const course = [...careerPath.courses.free, ...careerPath.courses.paid].find(c => c.id === cc.id) as any
       if (course?.competency) {
@@ -115,6 +123,13 @@ export default function JornadaSucessoPage() {
     window.open(url, '_blank')
   }
 
+  const handleCompetencyClick = (competency: string) => {
+    setScrollToCompetency(competency)
+    setTimeout(() => {
+      competencyRefs.current[competency]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
   const isCourseCompleted = (courseId: number) => {
     return completedCourses.some(cc => cc.id === courseId)
   }
@@ -126,6 +141,16 @@ export default function JornadaSucessoPage() {
   const getCoursesForCompetency = (competency: string) => {
     const allCourses = [...careerPath.courses.free, ...careerPath.courses.paid] as any[]
     return allCourses.filter(course => course.competency === competency)
+  }
+
+  const getMissingCompetencies = (cargoId: number): string[] => {
+    const cargo = careerPath.evolutionPath.find(c => c.id === cargoId)
+    if (!cargo) return []
+
+    const requiredCompetencies = cargo.requiredCompetencies || []
+    const developedCompetencies = getDevelopedCompetencies()
+
+    return requiredCompetencies.filter(comp => !developedCompetencies.has(comp))
   }
 
   const overallProgress = getOverallProgress()
@@ -168,7 +193,7 @@ export default function JornadaSucessoPage() {
                 <div className="text-4xl font-bold text-orange-600">
                   R$ {careerPath.currentPosition.salary.toLocaleString('pt-BR')}
                 </div>
-                <div className="text-sm text-green-600 font-semibold mt-1">Concluído</div>
+                <div className="text-2xl font-bold text-green-600 mt-3">VOCÊ ESTÁ AQUI</div>
               </div>
             </div>
 
@@ -190,16 +215,12 @@ export default function JornadaSucessoPage() {
               <h3 className="text-sm font-bold text-gray-700 mb-3">Competências Necessárias:</h3>
               <div className="flex flex-wrap gap-2">
                 {careerPath.currentPosition.competencies.map((competency) => (
-                  <button
+                  <span
                     key={competency}
-                    onClick={() => {
-                      setSelectedCompetency(competency)
-                      setShowCourseModal(true)
-                    }}
-                    className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full font-semibold hover:bg-blue-200 transition cursor-pointer border-2 border-blue-300"
+                    className="px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold border-2 border-green-400"
                   >
-                    {competency}
-                  </button>
+                    ✓ {competency}
+                  </span>
                 ))}
               </div>
             </div>
@@ -218,6 +239,7 @@ export default function JornadaSucessoPage() {
               const cargoProgress = getCargoProgress(position.id)
               const isCurrentPosition = index === 0
               const isSelectedGoal = position.id === selectedCareerGoal
+              const missingComps = getMissingCompetencies(position.id)
 
               return (
                 <div
@@ -243,8 +265,12 @@ export default function JornadaSucessoPage() {
                       <div className="text-3xl font-bold text-orange-600">
                         R$ {position.salary.toLocaleString('pt-BR')}
                       </div>
-                      {isCurrentPosition && <div className="text-xs text-green-600 font-semibold mt-2">Você está aqui</div>}
-                      {isSelectedGoal && !isCurrentPosition && <div className="text-xs text-orange-600 font-semibold mt-2">🎯 Seu Objetivo</div>}
+                      {isCurrentPosition && (
+                        <div className="text-xl font-bold text-green-600 mt-2">VOCÊ ESTÁ AQUI</div>
+                      )}
+                      {isSelectedGoal && !isCurrentPosition && (
+                        <div className="text-xl font-bold text-orange-600 mt-2">🎯 PRÓXIMO OBJETIVO</div>
+                      )}
                     </div>
                   </div>
 
@@ -264,27 +290,44 @@ export default function JornadaSucessoPage() {
                     </div>
                   </div>
 
-                  {/* Competências Necessárias */}
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-700 mb-2">Competências Necessárias:</h4>
+                  {/* Competências Desenvolvidas */}
+                  <div className="mb-4">
+                    <h4 className="text-xs font-bold text-gray-700 mb-2">✓ Competências Desenvolvidas:</h4>
                     <div className="flex flex-wrap gap-2">
                       {(position.requiredCompetencies || position.competencies).map((comp) => {
                         const isCompleted = developedComps.has(comp)
-                        return (
+                        return isCompleted ? (
                           <span
                             key={comp}
-                            className={`px-3 py-1 text-xs rounded-full font-semibold transition ${
-                              isCompleted
-                                ? 'bg-green-100 text-green-800 border-2 border-green-400'
-                                : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
-                            }`}
+                            className="px-3 py-1 text-xs rounded-full font-semibold bg-green-100 text-green-800 border-2 border-green-400"
                           >
-                            {isCompleted ? '✓ ' : ''}{comp}
+                            ✓ {comp}
                           </span>
-                        )
+                        ) : null
                       })}
                     </div>
                   </div>
+
+                  {/* Competências Necessárias (Clicáveis) */}
+                  {missingComps.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-700 mb-2">📚 Competências para Desenvolver:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {missingComps.map((comp) => (
+                          <button
+                            key={comp}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCompetencyClick(comp)
+                            }}
+                            className="px-3 py-1 text-xs rounded-full font-semibold bg-blue-100 text-blue-800 border-2 border-blue-400 hover:bg-blue-200 transition cursor-pointer"
+                          >
+                            {comp} →
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -321,23 +364,32 @@ export default function JornadaSucessoPage() {
           </div>
         )}
 
-        {/* SEÇÃO 4: CURSOS RECOMENDADOS */}
+        {/* SEÇÃO 4: CURSOS RECOMENDADOS POR COMPETÊNCIA */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">🎓 Cursos Recomendados para Sua Jornada</h2>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             {careerPath.competencies.map((competency) => {
               const isCompetencyDeveloped = developedComps.has(competency)
+              const courses = getCoursesForCompetency(competency)
 
               return (
-                <div key={competency} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+                <div
+                  key={competency}
+                  ref={(el) => {
+                    if (el) competencyRefs.current[competency] = el
+                  }}
+                  className={`bg-white rounded-lg shadow-md p-6 border-l-4 transition ${
+                    scrollToCompetency === competency ? 'border-orange-500 ring-2 ring-orange-300' : 'border-orange-400'
+                  }`}
+                >
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
                     📚 {competency}
                     {isCompetencyDeveloped && <span className="text-green-600 ml-2 text-sm">✓ Desenvolvida</span>}
                   </h3>
 
                   <div className="space-y-3">
-                    {getCoursesForCompetency(competency).map((course: any) => {
+                    {courses.map((course: any) => {
                       const isCompleted = isCourseCompleted(course.id)
                       const completedInfo = getCompletedCourseInfo(course.id)
 
