@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function CandidateProfilePage() {
   const [profile, setProfile] = useState({
@@ -11,319 +11,376 @@ export default function CandidateProfilePage() {
     email: 'joao@email.com',
     phone: '(11) 98765-4321',
     linkedinUrl: 'https://linkedin.com/in/joaosilva',
-    profilePhoto: '/default-profile.jpg',
+    profilePhoto: 'https://ui-avatars.com/api/?name=Joao+Silva&background=F97316&color=fff&size=128',
     currentPosition: 'Sales Development Representative',
     currentCompany: 'Tech Solutions',
     currentSalary: 4500,
     yearsOfExperience: 3,
-    careerGoal: 'Tornar-me um Sales Manager em 2 anos',
     bio: 'Profissional apaixonado por vendas com foco em prospecção e geração de leads. Busco oportunidades de crescimento profissional e geração de renda.',
     skills: ['Prospecção', 'Negociação', 'CRM', 'Comunicação', 'Vendas B2B', 'Geração de Leads'],
     certifications: [
-      { name: 'Certificação SDR', issuer: 'ScaleConnect', date: '2024-01-15' },
-      { name: 'Google Analytics', issuer: 'Google', date: '2023-11-20' },
+      { name: 'Certificação SDR', issuer: 'ScaleConnect', date: '15/01/2024' },
+      { name: 'Google Analytics', issuer: 'Google', date: '20/11/2023' },
     ],
   })
 
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState(profile)
   const [photoPreview, setPhotoPreview] = useState(profile.profilePhoto)
+  const [isSaving, setIsSaving] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Carregar dados do localStorage ao iniciar
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('scaleconnect_candidate_profile')
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile)
+        setProfile(parsed)
+        setEditData(parsed)
+        setPhotoPreview(parsed.profilePhoto)
+      } catch (e) {
+        console.error('Erro ao carregar perfil', e)
+      }
+    }
+  }, [])
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setPhotoPreview(reader.result as string)
-        setEditData({ ...editData, profilePhoto: reader.result as string })
+        const base64 = reader.result as string
+        setPhotoPreview(base64)
+        setEditData({ ...editData, profilePhoto: base64 })
       }
       reader.readAsDataURL(file)
     }
   }
 
   const handleSave = () => {
-    setProfile(editData)
-    setIsEditing(false)
+    // Validação básica
+    if (!editData.fullName || !editData.currentSalary || !editData.email) {
+      alert('Por favor, preencha todos os campos obrigatórios (Nome, Email e Salário Atual).')
+      return
+    }
+
+    setIsSaving(true)
+    
+    // Simular salvamento
+    setTimeout(() => {
+      setProfile(editData)
+      localStorage.setItem('scaleconnect_candidate_profile', JSON.stringify(editData))
+      setIsEditing(false)
+      setIsSaving(false)
+      alert('Perfil atualizado com sucesso!')
+    }, 1000)
   }
 
-  // Career progression suggestion
-  const careerProgression = [
-    { role: 'SDR', salary: 3500, yearsNeeded: 1, description: 'Sales Development Representative' },
-    { role: 'Account Executive', salary: 6500, yearsNeeded: 3, description: 'Fechar vendas' },
-    { role: 'Sales Manager', salary: 12000, yearsNeeded: 5, description: 'Gerenciar time' },
-    { role: 'Director of Sales', salary: 18000, yearsNeeded: 8, description: 'Estratégia de vendas' },
-  ]
-
-  const currentLevel = careerProgression.findIndex(c => c.role.toLowerCase().includes('sdr'))
-  const nextLevel = currentLevel + 1
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-candidate-light to-slate-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
+    <main className="min-h-screen bg-gray-50">
+      {/* Header Simplificado */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
-          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold hover:underline">
-            ← Voltar ao Dashboard
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-orange-600">ScaleConnect</span>
+            <span className="text-gray-300">|</span>
+            <span className="text-sm font-medium text-gray-500">DConnection Group</span>
+          </div>
+          <Link href="/candidato/dashboard" className="text-orange-600 font-semibold hover:text-orange-700 transition flex items-center gap-1">
+            <span>←</span> Voltar ao Painel
           </Link>
         </div>
-      </nav>
+      </div>
 
-      {/* Sidebar + Content */}
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-md min-h-screen p-6">
-          <nav className="space-y-4">
-            <Link href="/candidato/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📊 Dashboard
-            </Link>
-            <Link href="/candidato/jobs" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📋 Vagas
-            </Link>
-            <Link href="/candidato/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              💼 Oportunidades
-            </Link>
-            <Link href="/candidato/earnings" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              💰 Meus Ganhos
-            </Link>
-            <Link href="/candidato/career-path" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              🚀 Jornada de Sucesso
-            </Link>
-            <Link href="/candidato/profile" className="block px-4 py-2 bg-candidate-primary text-white rounded-lg font-semibold">
-              👤 Perfil
-            </Link>
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">👤 Meu Perfil Profissional</h1>
-                <p className="text-gray-600">Seu perfil é visível para empresas que buscam profissionais como você</p>
-              </div>
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="px-6 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90"
-              >
-                {isEditing ? 'Cancelar' : '✏️ Editar Perfil'}
-              </button>
-            </div>
-
-            {/* LinkedIn-Style Profile Card */}
-            <div className="card bg-white mb-8">
-              {/* Header Section with Avatar */}
-              <div className="bg-gradient-to-r from-candidate-primary to-candidate-secondary h-32 rounded-t-lg mb-16 relative">
-                <div className="absolute -bottom-12 left-6 relative">
-                  <img
-                    src={photoPreview}
-                    alt="Foto de Perfil"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg bg-gray-200"
-                  />
-                  {isEditing && (
-                    <label className="absolute bottom-0 right-0 bg-candidate-primary hover:bg-opacity-90 text-white p-2 rounded-full cursor-pointer shadow-lg">
-                      📷
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoChange}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Profile Info */}
-              <div className="pl-6 pr-6 pb-6">
-                <div className="mb-8">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Nome Completo</label>
-                          <input
-                            type="text"
-                            value={editData.fullName}
-                            onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Idade</label>
-                          <input
-                            type="number"
-                            value={editData.age}
-                            onChange={(e) => setEditData({ ...editData, age: parseInt(e.target.value) })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Gênero</label>
-                          <select
-                            value={editData.gender}
-                            onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                          >
-                            <option value="M">Masculino</option>
-                            <option value="F">Feminino</option>
-                            <option value="O">Outro</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                          <input
-                            type="email"
-                            value={editData.email}
-                            onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Telefone</label>
-                          <input
-                            type="tel"
-                            value={editData.phone}
-                            onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <h2 className="text-3xl font-bold text-gray-900">{profile.fullName}</h2>
-                      <p className="text-lg text-candidate-primary font-semibold mt-1">{profile.currentPosition} • {profile.yearsOfExperience} anos</p>
-                      <p className="text-gray-600 mt-2">{profile.currentCompany}</p>
-                      <div className="flex gap-4 mt-3 text-sm text-gray-600">
-                        <span>👤 {profile.age} anos</span>
-                        <span>⚧ {profile.gender === 'M' ? 'Masculino' : 'Feminino'}</span>
-                        <span>📧 {profile.email}</span>
-                        <span>📱 {profile.phone}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* LinkedIn URL */}
-                <div className="mb-8 pb-8 border-b">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">🔗 Link do LinkedIn</label>
-                  {isEditing ? (
-                    <input
-                      type="url"
-                      value={editData.linkedinUrl}
-                      onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })}
-                      placeholder="https://linkedin.com/in/seu-perfil"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary"
-                    />
-                  ) : (
-                    <a
-                      href={profile.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-candidate-primary hover:underline font-semibold"
-                    >
-                      {profile.linkedinUrl}
-                    </a>
-                  )}
-                </div>
-
-                {/* Salary Highlight - IMPORTANTE */}
-                <div className="bg-gradient-to-r from-candidate-primary to-candidate-secondary text-white p-6 rounded-lg mb-8">
-                  <p className="text-sm opacity-90 mb-2">💰 Salário Atual <span className="text-red-300">*</span> (Obrigatório)</p>
-                  {isEditing ? (
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Quanto você ganha atualmente? (R$)</label>
-                      <input
-                        type="number"
-                        value={editData.currentSalary}
-                        onChange={(e) => setEditData({ ...editData, currentSalary: parseInt(e.target.value) })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary text-gray-900"
-                        required
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-3xl font-bold">R$ {profile.currentSalary.toLocaleString('pt-BR')}</p>
-                  )}
-                </div>
-
-                {/* Bio */}
-                <div className="mb-8 pb-8 border-b">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Resumo Profissional</label>
-                  {isEditing ? (
-                    <textarea
-                      value={editData.bio}
-                      onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-candidate-primary h-24"
-                    />
-                  ) : (
-                    <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-                  )}
-                </div>
-
-                {/* Skills */}
-                <div className="mb-8 pb-8 border-b">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Habilidades</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.skills.map((skill, idx) => (
-                      <span key={idx} className="px-4 py-2 bg-candidate-light text-candidate-primary rounded-full font-semibold">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Certifications */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">🏆 Certificações</h3>
-                  <div className="space-y-3">
-                    {profile.certifications.map((cert, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <span className="text-2xl">✓</span>
-                        <div>
-                          <p className="font-semibold text-gray-900">{cert.name}</p>
-                          <p className="text-sm text-gray-600">{cert.issuer}</p>
-                          <p className="text-xs text-gray-500">Obtido em {cert.date}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        {/* Profile Header Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+          {/* Banner */}
+          <div className="h-32 bg-gradient-to-r from-orange-500 to-orange-600"></div>
+          
+          {/* Profile Info Section */}
+          <div className="px-8 pb-8 relative">
+            {/* Avatar */}
+            <div className="absolute -top-16 left-8">
+              <div className="relative group">
+                <img
+                  src={photoPreview}
+                  alt="Foto de Perfil"
+                  className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-md bg-gray-100"
+                />
                 {isEditing && (
-                  <div className="flex gap-4 pt-8 border-t">
-                    <button
-                      onClick={handleSave}
-                      className="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
-                    >
-                      💾 Salvar Alterações
-                    </button>
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400"
-                    >
-                      🔄 Cancelar
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <span className="text-sm font-bold">Alterar Foto</span>
+                  </button>
                 )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
               </div>
             </div>
 
-            {/* Info Box */}
-            <div className="bg-blue-50 border-l-4 border-candidate-primary p-4 rounded">
-              <p className="text-sm text-gray-700">
-                <strong>ℹ️ Informação importante:</strong> Seu salário atual é <strong>obrigatório</strong> e será usado para conectá-lo com as melhores oportunidades. 
-                Seu objetivo de carreira e salário desejado serão definidos na seção <strong>"Jornada de Sucesso"</strong>, onde você traçará seu caminho profissional.
-              </p>
+            {/* Header Actions */}
+            <div className="flex justify-end pt-4">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-6 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition shadow-sm"
+                >
+                  ✏️ Editar Perfil
+                </button>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition shadow-sm disabled:opacity-50"
+                  >
+                    {isSaving ? 'Salvando...' : '💾 Salvar'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Name and Basic Info */}
+            <div className="mt-10">
+              {isEditing ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo *</label>
+                      <input
+                        type="text"
+                        value={editData.fullName}
+                        onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cargo Atual</label>
+                      <input
+                        type="text"
+                        value={editData.currentPosition}
+                        onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Empresa Atual</label>
+                      <input
+                        type="text"
+                        value={editData.currentCompany}
+                        onChange={(e) => setEditData({ ...editData, currentCompany: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Idade</label>
+                        <input
+                          type="number"
+                          value={editData.age}
+                          onChange={(e) => setEditData({ ...editData, age: parseInt(e.target.value) })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Gênero</label>
+                        <select
+                          value={editData.gender}
+                          onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                          <option value="M">Masculino</option>
+                          <option value="F">Feminino</option>
+                          <option value="O">Outro</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{profile.fullName}</h1>
+                  <p className="text-lg text-orange-600 font-semibold">{profile.currentPosition} na {profile.currentCompany}</p>
+                  <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">🎂 {profile.age} anos</span>
+                    <span className="flex items-center gap-1">⚧ {profile.gender === 'M' ? 'Masculino' : profile.gender === 'F' ? 'Feminino' : 'Outro'}</span>
+                    <span className="flex items-center gap-1">📍 São Paulo, Brasil</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Contact & Salary */}
+          <div className="lg:col-span-1 space-y-8">
+            {/* Salary Card - CRITICAL REQUIREMENT */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">💰</span>
+                <h3 className="font-bold text-gray-900">Salário Atual</h3>
+              </div>
+              {isEditing ? (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Valor Mensal (R$) *</label>
+                  <input
+                    type="number"
+                    value={editData.currentSalary}
+                    onChange={(e) => setEditData({ ...editData, currentSalary: parseInt(e.target.value) })}
+                    className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none font-bold text-orange-600"
+                    required
+                  />
+                  <p className="text-[10px] text-gray-400 mt-2 italic">* Campo obrigatório para conexão com empresas.</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-3xl font-bold text-orange-600">R$ {profile.currentSalary.toLocaleString('pt-BR')}</p>
+                  <p className="text-xs text-gray-500 mt-1">Este valor é visível apenas para empresas parceiras.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-4">Contato</h3>
+              <div className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">E-mail *</label>
+                      <input
+                        type="email"
+                        value={editData.email}
+                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">WhatsApp</label>
+                      <input
+                        type="tel"
+                        value={editData.phone}
+                        onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">LinkedIn URL</label>
+                      <input
+                        type="url"
+                        value={editData.linkedinUrl}
+                        onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })}
+                        placeholder="https://linkedin.com/in/..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">📧</span>
+                      <span className="text-gray-700">{profile.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">📱</span>
+                      <span className="text-gray-700">{profile.phone}</span>
+                    </div>
+                    <a 
+                      href={profile.linkedinUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-blue-600 hover:underline"
+                    >
+                      <span className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">in</span>
+                      <span>Ver Perfil no LinkedIn</span>
+                    </a>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Bio & Skills */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Bio Section */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-4 text-xl">Sobre Mim</h3>
+              {isEditing ? (
+                <textarea
+                  value={editData.bio}
+                  onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
+                  rows={5}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-gray-700 leading-relaxed"
+                />
+              ) : (
+                <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
+              )}
+            </div>
+
+            {/* Skills Section */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-6 text-xl">Habilidades e Competências</h3>
+              <div className="flex flex-wrap gap-3">
+                {profile.skills.map((skill, idx) => (
+                  <span key={idx} className="px-4 py-2 bg-orange-50 text-orange-700 rounded-xl font-bold text-sm border border-orange-100">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications Section */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-6 text-xl">🏆 Certificações</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {profile.certifications.map((cert, idx) => (
+                  <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center text-xl shrink-0">
+                      📜
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">{cert.name}</p>
+                      <p className="text-xs text-gray-500">{cert.issuer} • {cert.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-12 p-6 bg-orange-600 rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+          <div>
+            <h4 className="text-xl font-bold mb-1">Pronto para o próximo nível?</h4>
+            <p className="text-orange-100 text-sm">Sua jornada de sucesso está apenas começando. Continue evoluindo!</p>
+          </div>
+          <Link 
+            href="/candidato/jornada-sucesso" 
+            className="px-8 py-3 bg-white text-orange-600 rounded-xl font-bold hover:bg-orange-50 transition shadow-md whitespace-nowrap"
+          >
+            Ver Minha Jornada 🚀
+          </Link>
+        </div>
       </div>
     </main>
-  );
+  )
 }
