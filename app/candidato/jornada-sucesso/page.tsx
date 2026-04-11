@@ -388,75 +388,84 @@ export default function JornadaSucessoPage() {
                     {isCompetencyDeveloped && <span className="text-green-600 ml-2 text-sm">✓ Desenvolvida</span>}
                   </h3>
 
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {courses.map((course: any) => {
                       const isCompleted = isCourseCompleted(course.id)
                       const completedInfo = getCompletedCourseInfo(course.id)
 
                       return (
-                        <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-gray-900 mb-1">{course.title}</h4>
-                              <p className="text-sm text-gray-600 mb-2">{course.institution}</p>
-                              <div className="flex items-center gap-3 text-sm flex-wrap">
-                                <span className="text-gray-600">⏱️ {course.duration}</span>
-                                {course.certificate && <span className="text-green-600">✓ Certificado</span>}
-                                <span className="font-bold text-orange-600">
+                        <div key={course.id} className="border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-orange-400 transition flex flex-col h-full bg-gradient-to-br from-white to-gray-50">
+                          <div className="flex-1 mb-4">
+                            <h4 className="font-bold text-gray-900 mb-2 text-sm line-clamp-2">{course.title}</h4>
+                            <p className="text-xs text-gray-600 mb-3 font-semibold">{course.institution}</p>
+                            <div className="flex flex-col gap-2 text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600">⏱️</span>
+                                <span className="text-gray-700">{course.duration}</span>
+                              </div>
+                              {course.certificate && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-green-600">✓</span>
+                                  <span className="text-green-600">Certificado</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <span className="text-orange-600 font-bold">
                                   {typeof course.value === 'number' ? `R$ ${course.value}` : course.value}
                                 </span>
                               </div>
-                              {isCompleted && completedInfo && (
-                                <div className="text-xs text-green-600 mt-2">
-                                  ✓ Concluído em {completedInfo.completedAt} - {completedInfo.fileName}
-                                </div>
-                              )}
                             </div>
-                            <div className="flex gap-2 ml-4">
-                              <button
-                                onClick={() => handleRedirectToCourse(course.url)}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm whitespace-nowrap"
-                              >
-                                Acessar
-                              </button>
-                              {isCompleted ? (
-                                <>
+                            {isCompleted && completedInfo && (
+                              <div className="text-xs text-green-600 mt-3 p-2 bg-green-50 rounded">
+                                ✓ Concluído em {completedInfo.completedAt}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={() => handleRedirectToCourse(course.url)}
+                              className="w-full px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-xs transition"
+                            >
+                              Acessar
+                            </button>
+                            {isCompleted ? (
+                              <>
+                                <button
+                                  disabled
+                                  className="w-full px-3 py-2 bg-green-500 text-white rounded-lg font-semibold text-xs cursor-not-allowed"
+                                >
+                                  ✓ Concluído
+                                </button>
+                                {completedInfo?.certificateUrl && (
                                   <button
-                                    disabled
-                                    className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm whitespace-nowrap cursor-not-allowed"
+                                    onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
+                                    className="w-full px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-xs transition"
                                   >
-                                    ✓ Concluído
+                                    👁️ Ver Cert.
                                   </button>
-                                  {completedInfo?.certificateUrl && (
-                                    <button
-                                      onClick={() => setViewingCertificate(completedInfo.certificateUrl || null)}
-                                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold text-sm whitespace-nowrap"
-                                    >
-                                      👁️ Ver
-                                    </button>
-                                  )}
-                                </>
-                              ) : (
-                                <>
-                                  <input
-                                    ref={(el) => {
-                                      if (el) fileInputRefs.current[course.id] = el
-                                    }}
-                                    type="file"
-                                    accept=".pdf,image/jpeg,image/png,image/jpg"
-                                    onChange={(e) => handleFileSelect(course.id, e)}
-                                    style={{ display: 'none' }}
-                                  />
-                                  <button
-                                    onClick={() => handleUploadClick(course.id)}
-                                    disabled={uploadingCourseId === course.id}
-                                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                  >
-                                    {uploadingCourseId === course.id ? '⏳ Processando...' : '📤 Upload'}
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <input
+                                  ref={(el) => {
+                                    if (el) fileInputRefs.current[course.id] = el
+                                  }}
+                                  type="file"
+                                  accept=".pdf,image/jpeg,image/png,image/jpg"
+                                  onChange={(e) => handleFileSelect(course.id, e)}
+                                  style={{ display: 'none' }}
+                                />
+                                <button
+                                  onClick={() => handleUploadClick(course.id)}
+                                  disabled={uploadingCourseId === course.id}
+                                  className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                  {uploadingCourseId === course.id ? '⏳ ...' : '📤 Upload'}
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       )
