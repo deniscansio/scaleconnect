@@ -1,43 +1,6 @@
-{
-  "name": "scaleconnect",
-  "version": "1.0.0",
-  "description": "ScaleConnect - Conectando Candidatos, Empresas e Parceiros Educacionais",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "drizzle-kit push && next build",
     "start": "next start",
     "lint": "next lint"
   },
-  "dependencies": {
-    "@tidbcloud/serverless": "^0.3.0",
-    "axios": "^1.6.2",
-    "bcryptjs": "^2.4.3",
-    "dotenv": "^17.4.1",
-    "drizzle-orm": "^0.45.2",
-    "jsonwebtoken": "^9.0.0",
-    "mysql2": "^3.22.0",
-    "next": "^14.0.0",
-    "next-auth": "^4.24.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-hook-form": "^7.48.0",
-    "stripe": "^14.7.0",
-    "zod": "^3.22.4",
-    "zustand": "^4.4.1"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^20.10.5",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "autoprefixer": "^10.4.16",
-    "drizzle-kit": "^0.31.10",
-    "eslint": "^8.55.0",
-    "eslint-config-next": "^14.0.0",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  }
-}
