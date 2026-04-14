@@ -2,7 +2,7 @@ import { mysqlTable, serial, varchar, text, timestamp, decimal, mysqlEnum } from
 
 export const userTypeEnum = mysqlEnum('user_type', ['CANDIDATE', 'COMPANY', 'ADMIN']);
 
-export const users = mysqlTable('users', {
+export const users = mysqlTable('User', {
   id: serial('id').primaryKey(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
@@ -13,7 +13,7 @@ export const users = mysqlTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
-export const candidateProfiles = mysqlTable('candidate_profiles', {
+export const candidateProfiles = mysqlTable('CandidateProfile', {
   id: serial('id').primaryKey(),
   userId: serial('user_id').references(() => users.id),
   age: serial('age'),
