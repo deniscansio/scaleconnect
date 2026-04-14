@@ -1,18 +1,14 @@
 {
-  "name": "scaleconnect-saas",
+  "name": "scaleconnect",
   "version": "1.0.0",
-  "description": "Plataforma SaaS ScaleConnect - Conectando Candidatos, Empresas e Parceiros Educacionais",
+  "description": "ScaleConnect - Conectando Candidatos, Empresas e Parceiros Educacionais",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^5.7.0",
     "@tidbcloud/serverless": "^0.3.0",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
@@ -40,7 +36,6 @@
     "eslint": "^8.55.0",
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.32",
-    "prisma": "^5.7.0",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
