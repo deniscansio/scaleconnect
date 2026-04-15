@@ -10,33 +10,38 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userType = localStorage.getItem('userType')
+    const token = localStorage.getItem('scaleconnect_token')
+    const userType = localStorage.getItem('scaleconnect_userType')
 
     if (!token || userType !== 'CANDIDATE') {
       router.push('/login')
       return
     }
 
-    // Simular carregamento de dados do usuário
-    setUser({
-      id: '1',
-      fullName: 'João Candidato',
-      email: 'candidato@test.com',
-      currentPosition: 'Sales Development Representative',
-      currentCompany: 'Tech Solutions',
-      yearsOfExperience: 3,
-      totalEarnings: 12450,
-      totalSales: 8,
-      totalLeads: 24,
-      careerLevel: 'MID',
-    })
+    const storedUser = localStorage.getItem('scaleconnect_user')
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    } else {
+      setUser({
+        id: '1',
+        fullName: 'Candidato',
+        email: '',
+        currentPosition: 'Sales Development Representative',
+        currentCompany: 'Tech Solutions',
+        yearsOfExperience: 3,
+        totalEarnings: 12450,
+        totalSales: 8,
+        totalLeads: 24,
+        careerLevel: 'MID',
+      })
+    }
     setLoading(false)
   }, [router])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userType')
+    localStorage.removeItem('scaleconnect_token')
+    localStorage.removeItem('scaleconnect_userType')
+    localStorage.removeItem('scaleconnect_user')
     router.push('/')
   }
 
@@ -104,7 +109,7 @@ export default function CandidateDashboard() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-candidate-light opacity-80 mb-2">Ganhos Totais</p>
-                  <h2 className="text-4xl font-bold">R$ {user?.totalEarnings?.toLocaleString('pt-BR')}</h2>
+                  <h2 className="text-4xl font-bold">R$ {user?.totalEarnings?.toLocaleString('pt-BR') || '0'}</h2>
                   <p className="text-candidate-light opacity-80 mt-2">↑ +R$ 2.100 este mês</p>
                 </div>
                 <div className="text-5xl">💰</div>
@@ -116,19 +121,17 @@ export default function CandidateDashboard() {
               <div className="card bg-white">
                 <div className="text-4xl mb-4">📊</div>
                 <p className="text-gray-600 mb-2">Vendas Realizadas</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.totalSales}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{user?.totalSales || 0}</p>
               </div>
-
               <div className="card bg-white">
                 <div className="text-4xl mb-4">📝</div>
                 <p className="text-gray-600 mb-2">Leads Gerados</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.totalLeads}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{user?.totalLeads || 0}</p>
               </div>
-
               <div className="card bg-white">
                 <div className="text-4xl mb-4">🎯</div>
                 <p className="text-gray-600 mb-2">Nível de Carreira</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.careerLevel}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{user?.careerLevel || 'INICIANTE'}</p>
               </div>
             </div>
 
@@ -140,7 +143,6 @@ export default function CandidateDashboard() {
                   Ver Todas
                 </Link>
               </div>
-
               <div className="grid md:grid-cols-2 gap-6">
                 {[1, 2].map((i) => (
                   <div key={i} className="card bg-white hover:shadow-lg transition">
@@ -168,7 +170,6 @@ export default function CandidateDashboard() {
                   Ver Todas
                 </Link>
               </div>
-
               <div className="grid md:grid-cols-2 gap-6">
                 {[1, 2].map((i) => (
                   <div key={i} className="card bg-white hover:shadow-lg transition">
@@ -192,6 +193,9 @@ export default function CandidateDashboard() {
           </div>
         </div>
       </div>
+    </main>
+  )
+}
     </main>
   )
 }
