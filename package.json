@@ -4,7 +4,8 @@
   "description": "ScaleConnect - Conectando Candidatos, Empresas e Parceiros Educacionais",
   "scripts": {
     "dev": "next dev",
-    "build": "drizzle-kit push && next build",
+    "build": "next build",
+    "db:push": "drizzle-kit push",
     "start": "next start",
     "lint": "next lint"
   },
