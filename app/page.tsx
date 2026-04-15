@@ -38,10 +38,10 @@ export default function Home() {
             {companyConfig.description}
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/cadastro?type=candidato" className="px-8 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
+            <Link href="/cadastro?type=CANDIDATE" className="px-8 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
               Sou Candidato
             </Link>
-            <Link href="/cadastro?type=empresa" className="px-8 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
+            <Link href="/cadastro?type=COMPANY" className="px-8 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition">
               Sou Empresa
             </Link>
           </div>
@@ -49,7 +49,6 @@ export default function Home() {
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 mt-16">
-          {/* Feature 1 */}
           <div className="card">
             <div className="text-4xl mb-4">🚀</div>
             <h3 className="text-xl font-bold mb-2">Para Candidatos</h3>
@@ -57,8 +56,6 @@ export default function Home() {
               Encontre vagas, oportunidades de vendas, trilhas de carreira e ganhe comissões por leads e vendas.
             </p>
           </div>
-
-          {/* Feature 2 */}
           <div className="card">
             <div className="text-4xl mb-4">🏢</div>
             <h3 className="text-xl font-bold mb-2">Para Empresas</h3>
@@ -66,8 +63,6 @@ export default function Home() {
               Publique vagas, crie oportunidades comerciais, gerencie leads e métricas em um só lugar.
             </p>
           </div>
-
-          {/* Feature 3 */}
           <div className="card">
             <div className="text-4xl mb-4">📚</div>
             <h3 className="text-xl font-bold mb-2">Para Parceiros</h3>
@@ -81,7 +76,6 @@ export default function Home() {
         <div className="mt-20">
           <h2 className="section-title text-center">Planos para Empresas</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Basic Plan */}
             <div className="card border-2 border-gray-200">
               <h3 className="text-2xl font-bold mb-2">Basic</h3>
               <p className="text-3xl font-bold text-company-primary mb-4">R$ 497<span className="text-lg text-gray-600">/mês</span></p>
@@ -92,8 +86,6 @@ export default function Home() {
               </ul>
               <button className="w-full py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Escolher</button>
             </div>
-
-            {/* Growth Plan */}
             <div className="card border-2 border-company-primary">
               <div className="bg-company-primary text-white px-4 py-2 rounded-lg mb-4 inline-block">Popular</div>
               <h3 className="text-2xl font-bold mb-2">Growth</h3>
@@ -106,8 +98,6 @@ export default function Home() {
               </ul>
               <button className="w-full py-2 bg-company-primary text-white rounded-lg hover:bg-opacity-90">Escolher</button>
             </div>
-
-            {/* Scale Plan */}
             <div className="card border-2 border-gray-200">
               <h3 className="text-2xl font-bold mb-2">Scale</h3>
               <p className="text-3xl font-bold text-company-primary mb-4">R$ 1.997<span className="text-lg text-gray-600">/mês</span></p>
