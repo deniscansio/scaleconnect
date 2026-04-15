@@ -8,9 +8,15 @@ export default function CandidateDashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // ✅ CORREÇÃO: useEffect só roda no browser, localStorage funciona aqui
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+
     const token = localStorage.getItem('scaleconnect_token')
     const userType = localStorage.getItem('scaleconnect_userType')
 
@@ -42,7 +48,7 @@ export default function CandidateDashboard() {
       })
     }
     setLoading(false)
-  }, [router])
+  }, [isClient, router])
 
   const handleLogout = () => {
     localStorage.removeItem('scaleconnect_token')
