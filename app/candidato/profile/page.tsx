@@ -27,8 +27,8 @@ export default function CandidateProfilePage() {
   const [editData, setEditData] = useState(profile)
   const [photoPreview, setPhotoPreview] = useState(profile.profilePhoto)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Carregar dados do backend ao iniciar
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -77,9 +77,11 @@ export default function CandidateProfilePage() {
 
   const handleSave = async () => {
     try {
+      setIsSaving(true)
       const token = localStorage.getItem('scaleconnect_token')
       if (!token) {
         alert('Você precisa estar logado para salvar o perfil.')
+        setIsSaving(false)
         return
       }
 
@@ -88,16 +90,19 @@ export default function CandidateProfilePage() {
         skills: JSON.stringify(editData.skills)
       }
 
-      await axios.post('/api/candidate/profile', dataToSave, {
+      const response = await axios.post('/api/candidate/profile', dataToSave, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
       setProfile(editData)
       setIsEditing(false)
-      alert('Perfil salvo com sucesso!')
-    } catch (e) {
+      alert('✅ Perfil salvo com sucesso!')
+    } catch (e: any) {
       console.error('Erro ao salvar perfil', e)
-      alert('Erro ao salvar perfil. Tente novamente.')
+      const errorMsg = e.response?.data?.message || 'Erro ao salvar perfil. Tente novamente.'
+      alert('❌ ' + errorMsg)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -111,7 +116,6 @@ export default function CandidateProfilePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-candidate-light to-slate-50">
-      {/* Navigation */}
       <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
@@ -121,9 +125,7 @@ export default function CandidateProfilePage() {
         </div>
       </nav>
 
-      {/* Sidebar + Content */}
       <div className="flex">
-        {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
           <nav className="space-y-4">
             <Link href="/candidato/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
@@ -147,10 +149,8 @@ export default function CandidateProfilePage() {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <div className="flex-1 p-8">
           <div className="max-w-5xl mx-auto">
-            {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">👤 Meu Perfil Profissional</h1>
@@ -164,9 +164,7 @@ export default function CandidateProfilePage() {
               </button>
             </div>
 
-            {/* Profile Card */}
             <div className="card bg-white mb-8 shadow-lg rounded-xl overflow-hidden">
-              {/* Header Section with Avatar */}
               <div className="bg-gradient-to-r from-candidate-primary to-candidate-secondary h-32 mb-16 relative">
                 <div className="absolute -bottom-12 left-6">
                   <div className="relative">
@@ -190,7 +188,6 @@ export default function CandidateProfilePage() {
                 </div>
               </div>
 
-              {/* Profile Info */}
               <div className="p-6">
                 <div className="mb-8">
                   {isEditing ? (
@@ -272,7 +269,6 @@ export default function CandidateProfilePage() {
                   )}
                 </div>
 
-                {/* Professional Info */}
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4">Informações Profissionais</h3>
                   {isEditing ? (
@@ -364,18 +360,19 @@ export default function CandidateProfilePage() {
                   )}
                 </div>
 
-                {/* Action Buttons */}
                 {isEditing && (
                   <div className="border-t border-gray-200 pt-6 mt-6 flex gap-4">
                     <button
                       onClick={handleSave}
-                      className="flex-1 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90"
+                      disabled={isSaving}
+                      className="flex-1 py-3 bg-candidate-primary text-white rounded-lg font-semibold hover:bg-opacity-90 disabled:opacity-50"
                     >
-                      💾 Salvar Perfil
+                      {isSaving ? '⏳ Salvando...' : '💾 Salvar Perfil'}
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="flex-1 py-3 bg-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-400"
+                      disabled={isSaving}
+                      className="flex-1 py-3 bg-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-400 disabled:opacity-50"
                     >
                       ✕ Cancelar
                     </button>
@@ -389,6 +386,7 @@ export default function CandidateProfilePage() {
     </main>
   )
 }
+
 
   );
 }
