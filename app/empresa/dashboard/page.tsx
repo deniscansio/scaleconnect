@@ -10,8 +10,8 @@ export default function CompanyDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userType = localStorage.getItem('userType')
+    const token = localStorage.getItem('scaleconnect_token')
+    const userType = localStorage.getItem('scaleconnect_userType')
 
     if (!token || userType !== 'COMPANY') {
       router.push('/login')
@@ -34,8 +34,11 @@ export default function CompanyDashboard() {
   }, [router])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userType')
+    localStorage.removeItem('scaleconnect_token')
+    localStorage.removeItem('scaleconnect_userType')
+    localStorage.removeItem('scaleconnect_user')
+    document.cookie = 'scaleconnect_token=; path=/; max-age=0'
+    document.cookie = 'scaleconnect_userType=; path=/; max-age=0'
     router.push('/')
   }
 
