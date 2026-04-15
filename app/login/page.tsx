@@ -32,10 +32,14 @@ export default function LoginPage() {
         return
       }
 
-      // Salvar token no localStorage com a chave correta
+      // Salvar token no localStorage
       localStorage.setItem('scaleconnect_token', data.token)
       localStorage.setItem('scaleconnect_userType', data.userType)
       localStorage.setItem('scaleconnect_user', JSON.stringify(data.user))
+
+      // ✅ CORREÇÃO: Salvar também em cookie para o servidor reconhecer
+      document.cookie = `scaleconnect_token=${data.token}; path=/; max-age=604800`
+      document.cookie = `scaleconnect_userType=${data.userType}; path=/; max-age=604800`
 
       // Redirecionar baseado no tipo de usuário
       if (data.userType === 'CANDIDATE') {
@@ -125,6 +129,11 @@ export default function LoginPage() {
               </a>
             </p>
           </div>
+        </div>
+      </div>
+    </main>
+  )
+}
         </div>
       </div>
     </main>
