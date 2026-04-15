@@ -7,6 +7,7 @@ import Link from 'next/link'
 export default function CandidateDashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
@@ -33,21 +34,32 @@ export default function CandidateDashboard() {
         router.replace('/login')
         return
       }
-    } else {
-      setUser({
-        id: '1',
-        fullName: 'Candidato',
-        email: '',
-        currentPosition: 'Sales Development Representative',
-        currentCompany: 'Tech Solutions',
-        yearsOfExperience: 3,
-        totalEarnings: 12450,
-        totalSales: 8,
-        totalLeads: 24,
-        careerLevel: 'MID',
-      })
     }
-    setLoading(false)
+
+    // Buscar perfil real da API
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/candidate/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          setProfile(data)
+        } else {
+          setProfile({})
+        }
+      } catch (error) {
+        console.error('Erro ao buscar perfil:', error)
+        setProfile({})
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
   }, [isClient, router])
 
   const handleLogout = () => {
@@ -77,7 +89,7 @@ export default function CandidateDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
           <div className="flex gap-4 items-center">
-            <span className="text-gray-700">{user?.fullName}</span>
+            <span className="text-gray-700">{user?.fullName || 'Candidato'}</span>
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
@@ -120,7 +132,7 @@ export default function CandidateDashboard() {
             {/* Welcome Section */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Bem-vindo, {user?.fullName?.split(' ')[0]}! 🚀
+                Bem-vindo, {user?.fullName?.split(' ')[0] || 'Candidato'}! 🚀
               </h1>
               <p className="text-gray-600">Você está em uma jornada de sucesso profissional. Explore vagas e oportunidades para crescer e ganhar.</p>
             </div>
@@ -130,8 +142,8 @@ export default function CandidateDashboard() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-candidate-light opacity-80 mb-2">Ganhos Totais</p>
-                  <h2 className="text-4xl font-bold">R$ {user?.totalEarnings?.toLocaleString('pt-BR') || '0'}</h2>
-                  <p className="text-candidate-light opacity-80 mt-2">↑ +R$ 2.100 este mês</p>
+                  <h2 className="text-4xl font-bold">R$ {(profile?.totalEarnings || 0).toLocaleString('pt-BR')}</h2>
+                  <p className="text-candidate-light opacity-80 mt-2">↑ +R$ 0 este mês</p>
                 </div>
                 <div className="text-5xl">💰</div>
               </div>
@@ -142,17 +154,17 @@ export default function CandidateDashboard() {
               <div className="card bg-white">
                 <div className="text-4xl mb-4">📊</div>
                 <p className="text-gray-600 mb-2">Vendas Realizadas</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.totalSales || 0}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{profile?.totalSales || 0}</p>
               </div>
               <div className="card bg-white">
                 <div className="text-4xl mb-4">📝</div>
                 <p className="text-gray-600 mb-2">Leads Gerados</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.totalLeads || 0}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{profile?.totalLeads || 0}</p>
               </div>
               <div className="card bg-white">
                 <div className="text-4xl mb-4">🎯</div>
                 <p className="text-gray-600 mb-2">Nível de Carreira</p>
-                <p className="text-3xl font-bold text-candidate-primary">{user?.careerLevel || 'INICIANTE'}</p>
+                <p className="text-3xl font-bold text-candidate-primary">{profile?.careerLevel || 'INICIANTE'}</p>
               </div>
             </div>
 
