@@ -10,17 +10,23 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // ✅ CORREÇÃO: useEffect só roda no browser, localStorage funciona aqui
     const token = localStorage.getItem('scaleconnect_token')
     const userType = localStorage.getItem('scaleconnect_userType')
 
     if (!token || userType !== 'CANDIDATE') {
-      router.push('/login')
+      router.replace('/login')
       return
     }
 
     const storedUser = localStorage.getItem('scaleconnect_user')
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch {
+        router.replace('/login')
+        return
+      }
     } else {
       setUser({
         id: '1',
@@ -42,11 +48,20 @@ export default function CandidateDashboard() {
     localStorage.removeItem('scaleconnect_token')
     localStorage.removeItem('scaleconnect_userType')
     localStorage.removeItem('scaleconnect_user')
+    document.cookie = 'scaleconnect_token=; path=/; max-age=0'
+    document.cookie = 'scaleconnect_userType=; path=/; max-age=0'
     router.push('/')
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -193,9 +208,6 @@ export default function CandidateDashboard() {
           </div>
         </div>
       </div>
-    </main>
-  )
-}
     </main>
   )
 }
