@@ -350,7 +350,7 @@ export default function CandidateProfilePage() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Salário Atual</p>
-<p class               Name="font-semibold text-gray-900">R$ {profile.currentSalary ? Number(profile.currentSalary).toLocaleString('pt-BR') : 'Não preenchido'}</p>
+<p className="font-semibold text-gray-900">R$ {profile.currentSalary ? Number(profile.currentSalary).toLocaleString('pt-BR') : 'Não preenchido'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Anos de Experiência</p>
