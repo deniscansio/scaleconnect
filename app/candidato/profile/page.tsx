@@ -386,7 +386,3 @@ export default function CandidateProfilePage() {
     </main>
   )
 }
-
-
-  );
-}
