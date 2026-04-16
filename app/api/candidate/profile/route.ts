@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json()
 
-    // 🔥 ATUALIZA NOME E EMAIL NA TABELA USERS
+    // 🔥 ATUALIZA USERS (nome + email)
     await db.update(users)
       .set({
         fullName: data.fullName || '',
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 MAPEAMENTO CORRETO (SEM NULL)
+    // 🔥 MAPEAMENTO CORRETO (SEM NULL E SALARY STRING)
     const mappedData = {
       age: data.age ? Number(data.age) : undefined,
       gender: data.gender || '',
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       profilePhoto: data.profilePhoto || '',
       currentPosition: data.currentPosition || '',
       currentCompany: data.currentCompany || '',
-      currentSalary: data.currentSalary ? Number(data.currentSalary) : undefined,
+      currentSalary: data.currentSalary ? String(data.currentSalary) : undefined,
       yearsOfExperience: data.yearsOfExperience ? Number(data.yearsOfExperience) : undefined,
       bio: data.bio || '',
       careerGoal: data.careerGoal || '',
