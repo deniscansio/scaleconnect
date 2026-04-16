@@ -57,17 +57,17 @@ export async function POST(request: NextRequest) {
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 MAPEAMENTO CORRETO
+    // 🔥 MAPEAMENTO CORRETO (SEM NULL)
     const mappedData = {
-      age: data.age ? Number(data.age) : null,
+      age: data.age ? Number(data.age) : undefined,
       gender: data.gender || '',
       phone: data.phone || '',
       linkedinUrl: data.linkedinUrl || '',
       profilePhoto: data.profilePhoto || '',
       currentPosition: data.currentPosition || '',
       currentCompany: data.currentCompany || '',
-      currentSalary: data.currentSalary ? Number(data.currentSalary) : null,
-      yearsOfExperience: data.yearsOfExperience ? Number(data.yearsOfExperience) : null,
+      currentSalary: data.currentSalary ? Number(data.currentSalary) : undefined,
+      yearsOfExperience: data.yearsOfExperience ? Number(data.yearsOfExperience) : undefined,
       bio: data.bio || '',
       careerGoal: data.careerGoal || '',
       skills: data.skills || '',
