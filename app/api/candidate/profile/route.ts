@@ -18,10 +18,15 @@ async function getUserIdFromToken(request: NextRequest) {
   }
 }
 
+// ========================
+// GET - Buscar perfil
+// ========================
 export async function GET(request: NextRequest) {
   try {
     const userId = await getUserIdFromToken(request)
-    if (!userId) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    }
 
     const profile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
@@ -34,37 +39,54 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// ========================
+// POST - Criar ou atualizar perfil
+// ========================
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromToken(request)
-    if (!userId) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    }
 
     const data = await request.json()
-    
-    // Verificar se perfil já existe
+
     const existingProfile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
     })
 
+    const profileData = {
+      fullName: data.fullName,
+      age: data.age,
+      gender: data.gender,
+      phone: data.phone,
+      linkedinUrl: data.linkedinUrl,
+      profilePhoto: data.profilePhoto,
+      currentPosition: data.currentPosition,
+      currentCompany: data.currentCompany,
+      currentSalary: data.currentSalary,
+      yearsOfExperience: data.yearsOfExperience,
+      bio: data.bio,
+      skills: JSON.stringify(data.skills || []),
+      updatedAt: new Date()
+    }
+
     if (existingProfile) {
       // Atualizar
       await db.update(candidateProfiles)
-        .set({
-          ...data,
-          updatedAt: new Date()
-        })
+        .set(profileData)
         .where(eq(candidateProfiles.userId, userId))
     } else {
       // Criar novo
       await db.insert(candidateProfiles).values({
-        ...data,
         userId: userId,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...profileData,
+        createdAt: new Date()
       })
     }
 
     return NextResponse.json({ message: 'Perfil salvo com sucesso' })
+
   } catch (error) {
     console.error('Save profile error:', error)
     return NextResponse.json({ message: 'Erro ao salvar perfil' }, { status: 500 })
