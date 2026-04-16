@@ -19,17 +19,32 @@ async function getUserIdFromToken(request: NextRequest) {
   }
 }
 
-// 🔎 BUSCAR PERFIL
+// 🔎 BUSCAR PERFIL (AGORA COM USER + PROFILE)
 export async function GET(request: NextRequest) {
   try {
     const userId = await getUserIdFromToken(request)
-    if (!userId) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    }
 
+    // 🔥 BUSCA USER (nome + email)
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    })
+
+    // 🔥 BUSCA PROFILE
     const profile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
     })
 
-    return NextResponse.json(profile || {})
+    // 🔥 JUNTA TUDO
+    const mergedProfile = {
+      ...profile,
+      fullName: user?.fullName || '',
+      email: user?.email || ''
+    }
+
+    return NextResponse.json(mergedProfile)
   } catch (error) {
     console.error('Erro ao buscar perfil:', error)
     return NextResponse.json({ message: 'Erro ao buscar perfil' }, { status: 500 })
@@ -40,11 +55,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromToken(request)
-    if (!userId) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    }
 
     const data = await request.json()
 
-    // 🔥 ATUALIZA USERS (nome + email)
+    // 🔥 SALVA NOME E EMAIL NA TABELA USERS
     await db.update(users)
       .set({
         fullName: data.fullName || '',
@@ -57,7 +74,7 @@ export async function POST(request: NextRequest) {
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 MAPEAMENTO CORRETO (SEM NULL E SALARY STRING)
+    // 🔥 DADOS DO PROFILE (SEM NULL / SEM ERRO)
     const mappedData = {
       age: data.age ? Number(data.age) : undefined,
       gender: data.gender || '',
@@ -69,7 +86,6 @@ export async function POST(request: NextRequest) {
       currentSalary: data.currentSalary ? String(data.currentSalary) : undefined,
       yearsOfExperience: data.yearsOfExperience ? Number(data.yearsOfExperience) : undefined,
       bio: data.bio || '',
-      careerGoal: data.careerGoal || '',
       skills: data.skills || '',
       updatedAt: new Date()
     }
