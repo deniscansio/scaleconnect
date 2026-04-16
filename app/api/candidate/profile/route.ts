@@ -4,77 +4,75 @@ import { candidateProfiles, users } from '@/lib/db/schema/users'
 import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
-// 🔐 Pegar usuário pelo token
-async function getUserIdFromToken(request: NextRequest) {
+// 🔐 pegar usuário pelo token
+function getUserIdFromToken(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null
+  if (!authHeader) return null
 
   const token = authHeader.split(' ')[1]
 
   try {
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'secret-key')
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!)
     return decoded.id
   } catch {
     return null
   }
 }
 
-// 🔎 BUSCAR PERFIL (AGORA COM USER + PROFILE)
+// 🔎 GET PERFIL
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const userId = getUserIdFromToken(request)
     if (!userId) {
       return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     }
 
-    // 🔥 BUSCA USER (nome + email)
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId)
     })
 
-    // 🔥 BUSCA PROFILE
     const profile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 JUNTA TUDO
+    // 🔥 AGORA CPF VEM JUNTO
     const mergedProfile = {
       ...profile,
       fullName: user?.fullName || '',
-      email: user?.email || ''
+      email: user?.email || '',
+      cpf: user?.cpf || ''
     }
 
     return NextResponse.json(mergedProfile)
   } catch (error) {
-    console.error('Erro ao buscar perfil:', error)
     return NextResponse.json({ message: 'Erro ao buscar perfil' }, { status: 500 })
   }
 }
 
-// 💾 SALVAR PERFIL
+// 💾 SALVAR PERFIL + CPF
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken(request)
+    const userId = getUserIdFromToken(request)
     if (!userId) {
       return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     }
 
     const data = await request.json()
 
-    // 🔥 SALVA NOME E EMAIL NA TABELA USERS
-    await db.update(users)
-      .set({
-        fullName: data.fullName || '',
-        email: data.email || ''
-      })
-      .where(eq(users.id, userId))
+    // 🔥 LIMPAR CPF (tirar pontos)
+    const cpf = data.cpf ? data.cpf.replace(/\D/g, '') : ''
 
-    // 🔎 Verifica se já existe perfil
+    // 🔒 SALVAR CPF NA TABELA USERS
+    if (cpf) {
+      await db.update(users)
+        .set({ cpf })
+        .where(eq(users.id, userId))
+    }
+
     const existingProfile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 DADOS DO PROFILE (SEM NULL / SEM ERRO)
     const mappedData = {
       age: data.age ? Number(data.age) : undefined,
       gender: data.gender || '',
@@ -104,7 +102,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Perfil salvo com sucesso' })
   } catch (error) {
-    console.error('Erro ao salvar perfil:', error)
-    return NextResponse.json({ message: 'Erro ao salvar perfil' }, { status: 500 })
+    return NextResponse.json({ message: 'Erro ao salvar' }, { status: 500 })
   }
 }
