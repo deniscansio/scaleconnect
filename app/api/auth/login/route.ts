@@ -20,11 +20,23 @@ export async function POST(request: NextRequest) {
     }
 
     // =========================
-    // BUSCAR USUÁRIO (SEM CPF)
+    // BUSCAR USUÁRIO (SELECT EXPLÍCITO - SEM CPF PROBLEMA)
     // =========================
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email)
-    })
+    const user = await db
+      .select({
+        id: users.id,
+        fullName: users.fullName,
+        email: users.email,
+        password: users.password,
+        userType: users.userType,
+        companyName: users.companyName,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+      .then(res => res[0])
 
     if (!user) {
       return NextResponse.json(
@@ -52,31 +64,36 @@ export async function POST(request: NextRequest) {
       {
         id: user.id,
         email: user.email,
-        userType: user.userType || null,
+        userType: user.userType,
       },
       process.env.JWT_SECRET || 'scaleconnect-secret-2026',
       { expiresIn: '7d' }
     )
 
     // =========================
-    // RESPOSTA SEGURA
+    // RESPOSTA
     // =========================
     return NextResponse.json({
       message: 'Login realizado com sucesso!',
       token,
-      userType: user.userType || null,
+      userType: user.userType,
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName || null,
-        userType: user.userType || null,
-        cpf: user.cpf || null, // ⚠️ opcional, NÃO bloqueia login
+        fullName: user.fullName,
+        userType: user.userType,
       },
     })
 
   } catch (error) {
     console.error('Login error:', error)
 
+    return NextResponse.json(
+      { message: 'Erro interno no servidor ao realizar o login.' },
+      { status: 500 }
+    )
+  }
+}
     return NextResponse.json(
       { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
       { status: 500 }
