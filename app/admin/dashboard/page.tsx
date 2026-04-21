@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { companyConfig } from '../../config/company'
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('companies')
 
   // Mock data
   const [stats, setStats] = useState<any>(null)
