@@ -11,7 +11,7 @@ export default function AdminDashboardPage() {
   // Mock data
   const [stats, setStats] = useState<any>(null)
 const [loading, setLoading] = useState(true)
-
+const [candidates, setCandidates] = useState<any[]>([])
 useEffect(() => {
   const fetchData = async () => {
     try {
@@ -41,9 +41,6 @@ useEffect(() => {
     { id: 3, name: 'E-commerce Solutions', plan: 'Scale', status: 'Ativo', joinDate: '2024-03-10', revenue: 'R$ 1.997' },
     { id: 4, name: 'Consultoria XYZ', plan: 'Growth', status: 'Bloqueado', joinDate: '2024-03-01', revenue: 'R$ 0' },
   ]
-
-  const candidates = [
-  const [candidates, setCandidates] = useState<any[]>([])
 
   const partners = [
     { id: 1, name: 'Sales Academy', type: 'Cursos Online', status: 'Ativo', joinDate: '2024-01-10', courses: 24 },
