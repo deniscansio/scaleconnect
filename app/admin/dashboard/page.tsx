@@ -2,24 +2,31 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { companyConfig } from '../../config/company'
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview')
 
   // Mock data
-  const stats = {
-    totalCompanies: 1247,
-    activeCompanies: 1089,
-    totalCandidates: 5432,
-    activeCandidates: 4876,
-    totalPartners: 156,
-    activePartners: 142,
-    monthlyRevenue: 'R$ 245.680',
-    totalRevenue: 'R$ 1.234.560',
-    platformFee: '15%',
+  const [stats, setStats] = useState<any>(null)
+const [loading, setLoading] = useState(true)
+
+useEffect(() => {
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/admin/stats')
+      const data = await res.json()
+      setStats(data)
+    } catch (error) {
+      console.error('Erro ao buscar stats:', error)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  fetchStats()
+}, [])
 
   const companies = [
     { id: 1, name: 'Tech Solutions Brasil', plan: 'Growth', status: 'Ativo', joinDate: '2024-01-15', revenue: 'R$ 997' },
