@@ -36,9 +36,7 @@ useEffect(() => {
   ]
 
   const candidates = [
-    { id: 1, name: 'João Silva', email: 'joao@email.com', status: 'Ativo', joinDate: '2024-01-20', earnings: 'R$ 2.500' },
-    { id: 2, name: 'Maria Santos', email: 'maria@email.com', status: 'Ativo', joinDate: '2024-02-15', earnings: 'R$ 5.800' },
-    { id: 3, name: 'Pedro Costa', email: 'pedro@email.com', status: 'Inativo', joinDate: '2024-03-05', earnings: 'R$ 1.200' },
+    const [candidates, setCandidates] = useState<any[]>([])
   ]
 
   const partners = [
