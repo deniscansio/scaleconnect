@@ -9,13 +9,20 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   userType: userTypeEnum.notNull().default('CANDIDATE'),
   companyName: varchar('company_name', { length: 255 }),
+
+  // ✅ CPF ADICIONADO
+  cpf: varchar('cpf', { length: 14 }).unique(),
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
 export const candidateProfiles = mysqlTable('candidate_profiles', {
   id: serial('id').primaryKey(),
+
+  // 🔥 RELACIONAMENTO CORRETO
   userId: serial('user_id').references(() => users.id),
+
   age: serial('age'),
   gender: varchar('gender', { length: 20 }),
   phone: varchar('phone', { length: 20 }),
@@ -27,6 +34,7 @@ export const candidateProfiles = mysqlTable('candidate_profiles', {
   yearsOfExperience: serial('years_of_experience'),
   bio: text('bio'),
   skills: text('skills'),
+
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
