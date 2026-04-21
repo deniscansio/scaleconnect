@@ -13,21 +13,26 @@ export default function AdminDashboardPage() {
 const [loading, setLoading] = useState(true)
 
 useEffect(() => {
-  const fetchStats = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/admin/stats')
-      const data = await res.json()
-      setStats(data)
+      const [statsRes, candidatesRes] = await Promise.all([
+        fetch('/api/admin/stats'),
+        fetch('/api/admin/candidates'),
+      ])
+
+      const statsData = await statsRes.json()
+      const candidatesData = await candidatesRes.json()
+
+      setStats(statsData)
+      setCandidates(candidatesData)
+
     } catch (error) {
-      console.error('Erro ao buscar stats:', error)
-    } finally {
-      setLoading(false)
+      console.error('Erro ao buscar dados:', error)
     }
   }
 
-  fetchStats()
+  fetchData()
 }, [])
-
   const companies = [
     { id: 1, name: 'Tech Solutions Brasil', plan: 'Growth', status: 'Ativo', joinDate: '2024-01-15', revenue: 'R$ 997' },
     { id: 2, name: 'Marketing Digital Plus', plan: 'Basic', status: 'Ativo', joinDate: '2024-02-20', revenue: 'R$ 497' },
