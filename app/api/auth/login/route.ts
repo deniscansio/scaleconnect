@@ -9,7 +9,9 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    // Validações básicas
+    // =========================
+    // VALIDAÇÃO
+    // =========================
     if (!email || !password) {
       return NextResponse.json(
         { message: 'E-mail e senha são obrigatórios para o login.' },
@@ -17,7 +19,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Buscar usuário no banco de dados MySQL real
+    // =========================
+    // BUSCAR USUÁRIO (SEM CPF)
+    // =========================
     const user = await db.query.users.findFirst({
       where: eq(users.email, email)
     })
@@ -29,8 +33,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar senha criptografada
+    // =========================
+    // VALIDAR SENHA
+    // =========================
     const isPasswordValid = await bcrypt.compare(password, user.password)
+
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'E-mail ou senha incorretos. Verifique seus dados.' },
@@ -38,26 +45,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Gerar token JWT seguro
+    // =========================
+    // GERAR JWT
+    // =========================
     const token = jwt.sign(
-      { id: user.id, email: user.email, userType: user.userType },
+      {
+        id: user.id,
+        email: user.email,
+        userType: user.userType || null,
+      },
       process.env.JWT_SECRET || 'scaleconnect-secret-2026',
       { expiresIn: '7d' }
     )
 
+    // =========================
+    // RESPOSTA SEGURA
+    // =========================
     return NextResponse.json({
       message: 'Login realizado com sucesso!',
       token,
-      userType: user.userType,
+      userType: user.userType || null,
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName,
-        userType: user.userType,
+        fullName: user.fullName || null,
+        userType: user.userType || null,
+        cpf: user.cpf || null, // ⚠️ opcional, NÃO bloqueia login
       },
     })
+
   } catch (error) {
     console.error('Login error:', error)
+
     return NextResponse.json(
       { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
       { status: 500 }
