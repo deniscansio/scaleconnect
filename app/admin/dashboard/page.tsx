@@ -41,8 +41,7 @@ useEffect(() => {
   ]
 
   const candidates = [
-    const [candidates, setCandidates] = useState<any[]>([])
-  ]
+  const [candidates, setCandidates] = useState<any[]>([])
 
   const partners = [
     { id: 1, name: 'Sales Academy', type: 'Cursos Online', status: 'Ativo', joinDate: '2024-01-10', courses: 24 },
