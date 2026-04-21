@@ -1,14 +1,32 @@
 import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { users, candidateProfiles } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function GET() {
-  return NextResponse.json([
-    {
-      id: 1,
-      name: 'João Silva',
-      email: 'joao@email.com',
+  try {
+    const candidates = await db
+      .select({
+        id: users.id,
+        name: users.fullName,
+        email: users.email,
+        joinDate: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.userType, 'CANDIDATE'))
+
+    const result = candidates.map((c) => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
       status: 'Ativo',
-      joinDate: '2024-01-10',
-      earnings: 'R$ 500',
-    },
-  ])
+      joinDate: c.joinDate?.toISOString().split('T')[0] ?? '',
+      earnings: 'R$ 0',
+    }))
+
+    return NextResponse.json(result)
+  } catch (error) {
+    console.error('Erro ao buscar candidatos:', error)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
 }
