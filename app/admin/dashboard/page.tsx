@@ -112,23 +112,23 @@ useEffect(() => {
             <div className="grid md:grid-cols-4 gap-4 mb-8">
               <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
                 <p className="text-gray-400 text-sm mb-2">Empresas Ativas</p>
-                <p className="text-4xl font-bold text-yellow-400">{stats.activeCompanies}</p>
-                <p className="text-xs text-gray-600 mt-2">de {stats.totalCompanies} total</p>
+                <p className="text-4xl font-bold text-yellow-400">{stats?.activeCompanies || 0}</p>
+                <p className="text-xs text-gray-600 mt-2">de {stats?.totalCompanies || 0} total</p>
               </div>
               <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
                 <p className="text-gray-400 text-sm mb-2">Candidatos Ativos</p>
-                <p className="text-4xl font-bold text-green-400">{stats.activeCandidates}</p>
-                <p className="text-xs text-gray-600 mt-2">de {stats.totalCandidates} total</p>
+                <p className="text-4xl font-bold text-green-400">{stats?.activeCandidates || 0}</p>
+                <p className="text-xs text-gray-600 mt-2">de {stats?.totalCandidates || 0} total</p>
               </div>
               <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
                 <p className="text-gray-400 text-sm mb-2">Parceiros Ativos</p>
-                <p className="text-4xl font-bold text-blue-400">{stats.activePartners}</p>
-                <p className="text-xs text-gray-600 mt-2">de {stats.totalPartners} total</p>
+                <p className="text-4xl font-bold text-blue-400">{stats?.activePartners || 0}</p>
+                <p className="text-xs text-gray-600 mt-2">de {stats?.totalPartners || 0} total</p>
               </div>
               <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
                 <p className="text-gray-400 text-sm mb-2">Receita Mensal</p>
-                <p className="text-3xl font-bold text-purple-400">{stats.monthlyRevenue}</p>
-                <p className="text-xs text-gray-600 mt-2">Total: {stats.totalRevenue}</p>
+                <p className="text-3xl font-bold text-purple-400">{stats?.monthlyRevenue || 'R$ 0'}</p>
+                <p className="text-xs text-gray-600 mt-2">Total: {stats?.totalRevenue || 'R$ 0'}</p>
               </div>
             </div>
 
