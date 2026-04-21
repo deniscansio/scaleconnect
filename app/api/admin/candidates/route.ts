@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { users } from '@/lib/db/schema'
+import { users } from '@/lib/index'
 import { eq } from 'drizzle-orm'
 
 export async function GET() {
@@ -24,6 +24,12 @@ export async function GET() {
       earnings: 'R$ 0',
     }))
 
+    return NextResponse.json(result)
+  } catch (error) {
+    console.error('Erro ao buscar candidatos:', error)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
+}
     return NextResponse.json(result)
   } catch (error) {
     console.error('Erro ao buscar candidatos:', error)
