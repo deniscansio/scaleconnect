@@ -17,11 +17,8 @@ export default function CandidateProfilePage() {
     currentCompany: '',
     currentSalary: '',
     yearsOfExperience: '',
-    careerGoal: '',
     bio: '',
     skills: [],
-    certifications: [],
-    cpf: ''
   })
 
   const [isEditing, setIsEditing] = useState(false)
@@ -29,7 +26,6 @@ export default function CandidateProfilePage() {
   const [photoPreview, setPhotoPreview] = useState(profile.profilePhoto)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [cpfMissing, setCpfMissing] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -44,29 +40,19 @@ export default function CandidateProfilePage() {
           headers: { Authorization: `Bearer ${token}` }
         })
 
-        if (response.data && response.data.id) {
+        if (response.data) {
           const dbProfile = response.data
-
           const mergedProfile = {
             ...profile,
             ...dbProfile,
             skills:
               typeof dbProfile.skills === 'string'
-                ? JSON.parse(dbProfile.skills)
+                ? JSON.parse(dbProfile.skills || '[]')
                 : dbProfile.skills || [],
-            cpf: dbProfile.cpf || ''
           }
-
           setProfile(mergedProfile)
           setEditData(mergedProfile)
-          setPhotoPreview(
-            mergedProfile.profilePhoto || '/default-profile.jpg'
-          )
-
-          // 🔥 BLOQUEIO CPF
-          if (!dbProfile.cpf) {
-            setCpfMissing(true)
-          }
+          setPhotoPreview(mergedProfile.profilePhoto || '/default-profile.jpg')
         }
       } catch (e) {
         console.error('Erro ao carregar perfil do servidor', e)
@@ -94,7 +80,6 @@ export default function CandidateProfilePage() {
     try {
       setIsSaving(true)
       const token = localStorage.getItem('scaleconnect_token')
-
       if (!token) {
         alert('Você precisa estar logado.')
         return
@@ -105,66 +90,25 @@ export default function CandidateProfilePage() {
         skills: JSON.stringify(editData.skills)
       }
 
-      const response = await axios.post(
-        '/api/candidate/profile',
-        dataToSave,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      )
+      await axios.post('/api/candidate/profile', dataToSave, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
 
       setProfile(editData)
       setIsEditing(false)
-      setCpfMissing(false)
-
       alert('✅ Perfil salvo com sucesso!')
     } catch (e: any) {
-      const errorMsg =
-        e.response?.data?.message || 'Erro ao salvar perfil.'
+      const errorMsg = e.response?.data?.message || 'Erro ao salvar perfil.'
       alert('❌ ' + errorMsg)
     } finally {
       setIsSaving(false)
     }
   }
 
-  // 🔥 BLOQUEIO TOTAL SE NÃO TEM CPF
-  if (cpfMissing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-center">
-            🔒 CPF obrigatório
-          </h2>
-
-          <p className="text-gray-600 mb-6 text-center">
-            Para continuar usando a plataforma, informe seu CPF (uma única vez)
-          </p>
-
-          <input
-            type="text"
-            placeholder="Digite seu CPF"
-            value={editData.cpf || ''}
-            onChange={(e) =>
-              setEditData({ ...editData, cpf: e.target.value })
-            }
-            className="w-full px-4 py-2 border rounded-lg mb-4"
-          />
-
-          <button
-            onClick={handleSave}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold"
-          >
-            Salvar e continuar
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-xl font-semibold text-candidate-primary animate-pulse">
+        <div className="text-xl font-semibold animate-pulse">
           Carregando seu perfil...
         </div>
       </div>
@@ -179,10 +123,7 @@ export default function CandidateProfilePage() {
           <div className="text-2xl font-bold text-candidate-primary">
             ScaleConnect
           </div>
-          <Link
-            href="/candidato/dashboard"
-            className="text-candidate-primary font-semibold"
-          >
+          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold">
             ← Dashboard
           </Link>
         </div>
@@ -190,29 +131,21 @@ export default function CandidateProfilePage() {
 
       <div className="flex">
 
-        {/* SIDEBAR */}
         <aside className="w-64 bg-white shadow-md min-h-screen p-6">
-          <nav className="space-y-4">
+          <nav className="space-y-4 flex flex-col">
             <Link href="/candidato/dashboard">📊 Dashboard</Link>
             <Link href="/candidato/jobs">📋 Vagas</Link>
             <Link href="/candidato/opportunities">💼 Afiliado</Link>
             <Link href="/candidato/earnings">💰 Ganhos</Link>
-            <Link href="/candidato/profile" className="font-bold">
-              👤 Perfil
-            </Link>
+            <Link href="/candidato/profile" className="font-bold">👤 Perfil</Link>
           </nav>
         </aside>
 
-        {/* CONTENT */}
         <div className="flex-1 p-8">
-
           <div className="max-w-5xl mx-auto">
 
             <div className="flex justify-between mb-8">
-              <h1 className="text-4xl font-bold">
-                👤 Meu Perfil
-              </h1>
-
+              <h1 className="text-4xl font-bold">👤 Meu Perfil</h1>
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -221,21 +154,67 @@ export default function CandidateProfilePage() {
               </button>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow">
+            <div className="bg-white p-6 rounded-xl shadow space-y-6">
 
-              {/* resto do seu layout permanece igual */}
-              {/* NÃO removi nada estrutural */}
+              {/* FOTO */}
+              <div className="flex items-center gap-6">
+                <img
+                  src={photoPreview}
+                  alt="Foto de perfil"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-blue-200"
+                  onError={(e) => (e.currentTarget.src = '/default-profile.jpg')}
+                />
+                {isEditing && (
+                  <input type="file" accept="image/*" onChange={handlePhotoChange} />
+                )}
+              </div>
 
-              <p className="text-gray-500">
-                Perfil carregado com sucesso.
-              </p>
+              {/* CAMPOS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                  {isEditing ? (
+                    <input
+                      className="w-full border rounded px-3 py-2"
+                      value={editData.fullName}
+                      onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                    />
+                  ) : (
+                    <p className="text-gray-800">{profile.fullName || '—'}</p>
+                  )}
+                </div>
 
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                  <p className="text-gray-800">{profile.email || '—'}</p>
+                </div>
 
-        </div>
-      </div>
-    </main>
-  )
-}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  {isEditing ? (
+                    <input
+                      className="w-full border rounded px-3 py-2"
+                      value={editData.phone}
+                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    />
+                  ) : (
+                    <p className="text-gray-800">{profile.phone || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Idade</label>
+                  {isEditing ? (
+                    <input
+                      className="w-full border rounded px-3 py-2"
+                      value={editData.age}
+                      onChange={(e) => setEditData({ ...editData, age: e.target.value })}
+                    />
+                  ) : (
+                    <p className="text-gray-800">{profile.age || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <la
