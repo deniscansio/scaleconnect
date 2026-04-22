@@ -35,12 +35,10 @@ export async function GET(request: NextRequest) {
       where: eq(candidateProfiles.userId, userId)
     })
 
-    // 🔥 AGORA CPF VEM JUNTO
     const mergedProfile = {
       ...profile,
       fullName: user?.fullName || '',
       email: user?.email || '',
-      cpf: user?.cpf || ''
     }
 
     return NextResponse.json(mergedProfile)
@@ -49,7 +47,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 💾 SALVAR PERFIL + CPF
+// 💾 SALVAR PERFIL
 export async function POST(request: NextRequest) {
   try {
     const userId = getUserIdFromToken(request)
@@ -58,16 +56,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json()
-
-    // 🔥 LIMPAR CPF (tirar pontos)
-    const cpf = data.cpf ? data.cpf.replace(/\D/g, '') : ''
-
-    // 🔒 SALVAR CPF NA TABELA USERS
-    if (cpf) {
-      await db.update(users)
-        .set({ cpf })
-        .where(eq(users.id, userId))
-    }
 
     const existingProfile = await db.query.candidateProfiles.findFirst({
       where: eq(candidateProfiles.userId, userId)
@@ -99,6 +87,12 @@ export async function POST(request: NextRequest) {
         createdAt: new Date()
       })
     }
+
+    return NextResponse.json({ message: 'Perfil salvo com sucesso' })
+  } catch (error) {
+    return NextResponse.json({ message: 'Erro ao salvar' }, { status: 500 })
+  }
+}
 
     return NextResponse.json({ message: 'Perfil salvo com sucesso' })
   } catch (error) {
