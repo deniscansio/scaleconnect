@@ -34,3 +34,4 @@ export const candidateProfiles = mysqlTable('candidate_profiles', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 })
+
