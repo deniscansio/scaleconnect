@@ -9,9 +9,6 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    // =========================
-    // VALIDAÇÃO
-    // =========================
     if (!email || !password) {
       return NextResponse.json(
         { message: 'E-mail e senha são obrigatórios para o login.' },
@@ -19,9 +16,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // =========================
-    // BUSCAR USUÁRIO
-    // =========================
     let user
     try {
       const result = await db
@@ -38,7 +32,7 @@ export async function POST(request: NextRequest) {
         .from(users)
         .where(eq(users.email, email))
         .limit(1)
-      
+
       user = result[0]
     } catch (dbError) {
       console.error('Database error:', dbError)
@@ -55,9 +49,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // =========================
-    // VALIDAR SENHA
-    // =========================
     let isPasswordValid = false
     try {
       isPasswordValid = await bcrypt.compare(password, user.password)
@@ -76,9 +67,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // =========================
-    // GERAR JWT
-    // =========================
     const token = jwt.sign(
       {
         id: user.id,
@@ -89,9 +77,6 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     )
 
-    // =========================
-    // RESPOSTA
-    // =========================
     return NextResponse.json({
       message: 'Login realizado com sucesso!',
       token,
@@ -106,14 +91,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Login error:', error)
-
-    return NextResponse.json(
-      { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
-      { status: 500 }
-    )
-  }
-}
-
     return NextResponse.json(
       { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
       { status: 500 }
