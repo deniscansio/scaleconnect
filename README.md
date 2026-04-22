@@ -288,3 +288,5 @@ MIT License - veja LICENSE.md para detalhes
 ---
 
 **ScaleConnect** - Conectando Crescimento Profissional com Oportunidades Reais
+
+# ScaleConnect
