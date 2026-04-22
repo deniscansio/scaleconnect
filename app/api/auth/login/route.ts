@@ -20,23 +20,33 @@ export async function POST(request: NextRequest) {
     }
 
     // =========================
-    // BUSCAR USUÁRIO (SELECT EXPLÍCITO - SEM CPF PROBLEMA)
+    // BUSCAR USUÁRIO
     // =========================
-    const user = await db
-      .select({
-        id: users.id,
-        fullName: users.fullName,
-        email: users.email,
-        password: users.password,
-        userType: users.userType,
-        companyName: users.companyName,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-      })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
-      .then(res => res[0])
+    let user
+    try {
+      const result = await db
+        .select({
+          id: users.id,
+          fullName: users.fullName,
+          email: users.email,
+          password: users.password,
+          userType: users.userType,
+          companyName: users.companyName,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+      
+      user = result[0]
+    } catch (dbError) {
+      console.error('Database error:', dbError)
+      return NextResponse.json(
+        { message: 'Erro ao conectar ao banco de dados. Tente novamente em instantes.' },
+        { status: 503 }
+      )
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -48,7 +58,16 @@ export async function POST(request: NextRequest) {
     // =========================
     // VALIDAR SENHA
     // =========================
-    const isPasswordValid = await bcrypt.compare(password, user.password)
+    let isPasswordValid = false
+    try {
+      isPasswordValid = await bcrypt.compare(password, user.password)
+    } catch (bcryptError) {
+      console.error('Bcrypt error:', bcryptError)
+      return NextResponse.json(
+        { message: 'Erro ao validar senha. Tente novamente em instantes.' },
+        { status: 500 }
+      )
+    }
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -89,11 +108,12 @@ export async function POST(request: NextRequest) {
     console.error('Login error:', error)
 
     return NextResponse.json(
-      { message: 'Erro interno no servidor ao realizar o login.' },
+      { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
       { status: 500 }
     )
   }
 }
+
     return NextResponse.json(
       { message: 'Erro interno no servidor ao realizar o login. Tente novamente em instantes.' },
       { status: 500 }
