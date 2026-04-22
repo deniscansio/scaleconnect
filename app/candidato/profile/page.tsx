@@ -18,7 +18,7 @@ export default function CandidateProfilePage() {
     currentSalary: '',
     yearsOfExperience: '',
     bio: '',
-    skills: [],
+    skills: [] as string[],
   })
 
   const [isEditing, setIsEditing] = useState(false)
@@ -31,10 +31,7 @@ export default function CandidateProfilePage() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('scaleconnect_token')
-        if (!token) {
-          setIsLoading(false)
-          return
-        }
+        if (!token) { setIsLoading(false); return }
 
         const response = await axios.get('/api/candidate/profile', {
           headers: { Authorization: `Bearer ${token}` }
@@ -45,22 +42,20 @@ export default function CandidateProfilePage() {
           const mergedProfile = {
             ...profile,
             ...dbProfile,
-            skills:
-              typeof dbProfile.skills === 'string'
-                ? JSON.parse(dbProfile.skills || '[]')
-                : dbProfile.skills || [],
+            skills: typeof dbProfile.skills === 'string'
+              ? JSON.parse(dbProfile.skills || '[]')
+              : dbProfile.skills || [],
           }
           setProfile(mergedProfile)
           setEditData(mergedProfile)
           setPhotoPreview(mergedProfile.profilePhoto || '/default-profile.jpg')
         }
       } catch (e) {
-        console.error('Erro ao carregar perfil do servidor', e)
+        console.error('Erro ao carregar perfil', e)
       } finally {
         setIsLoading(false)
       }
     }
-
     fetchProfile()
   }, [])
 
@@ -80,17 +75,12 @@ export default function CandidateProfilePage() {
     try {
       setIsSaving(true)
       const token = localStorage.getItem('scaleconnect_token')
-      if (!token) {
-        alert('Você precisa estar logado.')
-        return
-      }
+      if (!token) { alert('Você precisa estar logado.'); return }
 
-      const dataToSave = {
+      await axios.post('/api/candidate/profile', {
         ...editData,
         skills: JSON.stringify(editData.skills)
-      }
-
-      await axios.post('/api/candidate/profile', dataToSave, {
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -98,8 +88,7 @@ export default function CandidateProfilePage() {
       setIsEditing(false)
       alert('✅ Perfil salvo com sucesso!')
     } catch (e: any) {
-      const errorMsg = e.response?.data?.message || 'Erro ao salvar perfil.'
-      alert('❌ ' + errorMsg)
+      alert('❌ ' + (e.response?.data?.message || 'Erro ao salvar perfil.'))
     } finally {
       setIsSaving(false)
     }
@@ -108,9 +97,7 @@ export default function CandidateProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-xl font-semibold animate-pulse">
-          Carregando seu perfil...
-        </div>
+        <div className="text-xl font-semibold animate-pulse">Carregando seu perfil...</div>
       </div>
     )
   }
@@ -120,12 +107,8 @@ export default function CandidateProfilePage() {
 
       <nav className="bg-white shadow-sm border-b-4 border-candidate-primary">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between">
-          <div className="text-2xl font-bold text-candidate-primary">
-            ScaleConnect
-          </div>
-          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold">
-            ← Dashboard
-          </Link>
+          <div className="text-2xl font-bold text-candidate-primary">ScaleConnect</div>
+          <Link href="/candidato/dashboard" className="text-candidate-primary font-semibold">← Dashboard</Link>
         </div>
       </nav>
 
@@ -156,7 +139,6 @@ export default function CandidateProfilePage() {
 
             <div className="bg-white p-6 rounded-xl shadow space-y-6">
 
-              {/* FOTO */}
               <div className="flex items-center gap-6">
                 <img
                   src={photoPreview}
@@ -169,17 +151,13 @@ export default function CandidateProfilePage() {
                 )}
               </div>
 
-              {/* CAMPOS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
                   {isEditing ? (
-                    <input
-                      className="w-full border rounded px-3 py-2"
-                      value={editData.fullName}
-                      onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                    />
+                    <input className="w-full border rounded px-3 py-2" value={editData.fullName}
+                      onChange={(e) => setEditData({ ...editData, fullName: e.target.value })} />
                   ) : (
                     <p className="text-gray-800">{profile.fullName || '—'}</p>
                   )}
@@ -193,11 +171,8 @@ export default function CandidateProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
                   {isEditing ? (
-                    <input
-                      className="w-full border rounded px-3 py-2"
-                      value={editData.phone}
-                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                    />
+                    <input className="w-full border rounded px-3 py-2" value={editData.phone}
+                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })} />
                   ) : (
                     <p className="text-gray-800">{profile.phone || '—'}</p>
                   )}
@@ -206,15 +181,79 @@ export default function CandidateProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Idade</label>
                   {isEditing ? (
-                    <input
-                      className="w-full border rounded px-3 py-2"
-                      value={editData.age}
-                      onChange={(e) => setEditData({ ...editData, age: e.target.value })}
-                    />
+                    <input className="w-full border rounded px-3 py-2" value={editData.age}
+                      onChange={(e) => setEditData({ ...editData, age: e.target.value })} />
                   ) : (
                     <p className="text-gray-800">{profile.age || '—'}</p>
                   )}
                 </div>
 
                 <div>
-                  <la
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cargo atual</label>
+                  {isEditing ? (
+                    <input className="w-full border rounded px-3 py-2" value={editData.currentPosition}
+                      onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })} />
+                  ) : (
+                    <p className="text-gray-800">{profile.currentPosition || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Empresa atual</label>
+                  {isEditing ? (
+                    <input className="w-full border rounded px-3 py-2" value={editData.currentCompany}
+                      onChange={(e) => setEditData({ ...editData, currentCompany: e.target.value })} />
+                  ) : (
+                    <p className="text-gray-800">{profile.currentCompany || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Anos de experiência</label>
+                  {isEditing ? (
+                    <input className="w-full border rounded px-3 py-2" value={editData.yearsOfExperience}
+                      onChange={(e) => setEditData({ ...editData, yearsOfExperience: e.target.value })} />
+                  ) : (
+                    <p className="text-gray-800">{profile.yearsOfExperience || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                  {isEditing ? (
+                    <input className="w-full border rounded px-3 py-2" value={editData.linkedinUrl}
+                      onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })} />
+                  ) : (
+                    <p className="text-gray-800">{profile.linkedinUrl || '—'}</p>
+                  )}
+                </div>
+
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                {isEditing ? (
+                  <textarea className="w-full border rounded px-3 py-2" rows={4} value={editData.bio}
+                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })} />
+                ) : (
+                  <p className="text-gray-800">{profile.bio || '—'}</p>
+                )}
+              </div>
+
+              {isEditing && (
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-blue-600 text-white px-6 py-2 rounded font-semibold disabled:opacity-50"
+                >
+                  {isSaving ? 'Salvando...' : 'Salvar perfil'}
+                </button>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
