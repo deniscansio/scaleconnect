@@ -175,7 +175,22 @@ export default function CandidateProfilePage() {
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
                 {isEditing ? 'Cancelar' : 'Editar'}
+              </button>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow">
+
+              {/* resto do seu layout permanece igual */}
+              {/* NÃO removi nada estrutural */}
+
+              <p className="text-gray-500">
+                Perfil carregado com sucesso.
+              </p>
+
+            </div>
+
           </div>
+
         </div>
       </div>
     </main>
