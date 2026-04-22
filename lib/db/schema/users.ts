@@ -13,7 +13,6 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   userType: userTypeEnum.notNull().default('CANDIDATE'),
   companyName: varchar('company_name', { length: 255 }),
-  // CPF removido temporariamente do schema até a coluna existir no banco
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 })
@@ -32,12 +31,6 @@ export const candidateProfiles = mysqlTable('candidate_profiles', {
   yearsOfExperience: int('years_of_experience'),
   bio: text('bio'),
   skills: text('skills'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
-})
-  bio: text('bio'),
-  skills: text('skills'),
-
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 })
