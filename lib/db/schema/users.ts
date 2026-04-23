@@ -13,6 +13,7 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   userType: userTypeEnum.notNull().default('CANDIDATE'),
   companyName: varchar('company_name', { length: 255 }),
+  isActive: int('is_active').default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 })
@@ -34,4 +35,3 @@ export const candidateProfiles = mysqlTable('candidate_profiles', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 })
-
