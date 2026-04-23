@@ -11,6 +11,7 @@ export async function GET() {
         name: users.fullName,
         email: users.email,
         joinDate: users.createdAt,
+        isActive: users.isActive,
       })
       .from(users)
       .where(eq(users.userType, 'CANDIDATE'))
@@ -19,7 +20,7 @@ export async function GET() {
       id: c.id,
       name: c.name,
       email: c.email,
-      status: 'Ativo',
+      status: c.isActive === 1 ? 'Ativo' : 'Bloqueado',
       joinDate: c.joinDate
         ? new Date(c.joinDate).toISOString().split('T')[0]
         : '',
