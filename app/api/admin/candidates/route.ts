@@ -18,7 +18,7 @@ export async function GET() {
       })
       .from(users)
       .where(eq(users.userType, 'CANDIDATE'))
-      .orderBy(desc(users.createdAt)) // Mostra os novos cadastros no topo
+      .orderBy(desc(users.createdAt))
 
     const result = candidates.map((c) => ({
       id: c.id,
