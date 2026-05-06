@@ -59,16 +59,31 @@ export default function CandidateProfilePage() {
     fetchProfile()
   }, [])
 
+  // ✅ ÚNICA MUDANÇA: comprime a imagem antes de converter para Base64
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string)
-        setEditData({ ...editData, profilePhoto: reader.result as string })
+    if (!file) return
+
+    const MAX_WIDTH = 400
+    const QUALITY = 0.75
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const scale = Math.min(1, MAX_WIDTH / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const compressed = canvas.toDataURL('image/jpeg', QUALITY)
+        setPhotoPreview(compressed)
+        setEditData(prev => ({ ...prev, profilePhoto: compressed }))
       }
-      reader.readAsDataURL(file)
+      img.src = event.target?.result as string
     }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
@@ -147,7 +162,10 @@ export default function CandidateProfilePage() {
                   onError={(e) => (e.currentTarget.src = '/default-profile.jpg')}
                 />
                 {isEditing && (
-                  <input type="file" accept="image/*" onChange={handlePhotoChange} />
+                  <div>
+                    <input type="file" accept="image/*" onChange={handlePhotoChange} />
+                    <p className="text-xs text-gray-400 mt-1">Use JPG ou PNG. Será comprimido automaticamente.</p>
+                  </div>
                 )}
               </div>
 
