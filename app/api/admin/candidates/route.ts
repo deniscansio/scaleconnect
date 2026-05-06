@@ -20,10 +20,3 @@ export async function GET() {
     return NextResponse.json({ message: 'Erro ao buscar candidatos' }, { status: 500 })
   }
 }
-
-    return NextResponse.json(
-      { error: 'Erro interno' },
-      { status: 500 }
-    )
-  }
-}
