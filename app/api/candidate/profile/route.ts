@@ -75,7 +75,11 @@ export async function POST(request: NextRequest) {
       })
     }
     return NextResponse.json({ message: 'Perfil salvo com sucesso' })
-  } catch (error) {
-    return NextResponse.json({ message: 'Erro ao salvar' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Erro detalhado ao salvar perfil:', error)
+    return NextResponse.json({ 
+      message: 'Erro ao salvar: ' + (error.message || 'Erro interno'),
+      details: error.code 
+    }, { status: 500 })
   }
 }
