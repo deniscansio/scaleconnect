@@ -4,6 +4,7 @@ import * as schema from './schema/users';
 
 // Configuração de conexão com o banco de dados MySQL (TiDB Cloud)
 const connection = mysql.createPool({
+  connectionLimit: 10, // IMPORTANTE: Limita conexões para não travar o banco
   uri: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: true
