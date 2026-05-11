@@ -160,10 +160,10 @@ export default function CandidateProfilePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
 
-      <nav className="bg-white shadow-sm border-b-4 border-blue-600">
+      <nav className="bg-gradient-to-r from-[#1a3a52] to-[#2d5a7b] shadow-lg border-b-4 border-[#FF9500]">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-blue-600">ScaleConnect</div>
-          <Link href="/candidato/dashboard" className="text-blue-600 font-semibold hover:text-blue-800">← Dashboard</Link>
+          <div className="text-2xl font-bold text-white">ScaleConnect</div>
+          <Link href="/candidato/dashboard" className="text-white font-semibold hover:text-[#FF9500] transition">← Dashboard</Link>
         </div>
       </nav>
 
@@ -183,20 +183,20 @@ export default function CandidateProfilePage() {
           <div className="max-w-5xl mx-auto">
 
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-800">👤 Meu Perfil</h1>
+              <h1 className="text-4xl font-bold text-[#1a3a52]">👤 Meu Perfil</h1>
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                   isEditing
                     ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-[#FF9500] text-white hover:bg-[#e68a00]'
                 }`}
               >
                 {isEditing ? '✕ Cancelar' : '✎ Editar Perfil'}
               </button>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-lg space-y-6 border border-gray-200">
+            <div className="bg-white p-8 rounded-xl shadow-xl space-y-6 border-l-4 border-[#FF9500]">
 
               {/* Profile Photo Section */}
               <div className="flex items-center gap-6 pb-6 border-b border-gray-200">
@@ -227,7 +227,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nome completo</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.fullName}
                       onChange={(e) => setEditData({ ...editData, fullName: e.target.value })} 
                     />
@@ -245,7 +245,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.phone}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })} 
                     />
@@ -258,7 +258,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Idade</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.age}
                       onChange={(e) => setEditData({ ...editData, age: e.target.value })} 
                     />
@@ -271,7 +271,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cargo atual</label>
                   {isEditing ? (
                     <select 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.currentPosition}
                       onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })}
                     >
@@ -291,7 +291,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Salário atual / Último salário</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       type="number"
                       placeholder="Ex: 3500"
                       value={editData.currentSalary}
@@ -306,7 +306,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Empresa atual</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.currentCompany}
                       onChange={(e) => setEditData({ ...editData, currentCompany: e.target.value })} 
                     />
@@ -319,7 +319,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Anos de experiência</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.yearsOfExperience}
                       onChange={(e) => setEditData({ ...editData, yearsOfExperience: e.target.value })} 
                     />
@@ -332,7 +332,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.linkedinUrl}
                       onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })} 
                     />
@@ -349,7 +349,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   {isEditing ? (
                     <select 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.state}
                       onChange={(e) => setEditData({ ...editData, state: e.target.value })}
                     >
@@ -391,7 +391,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
                   {isEditing ? (
                     <input 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.city}
                       onChange={(e) => setEditData({ ...editData, city: e.target.value })} 
                       placeholder="Ex: São Paulo"
@@ -405,7 +405,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nível de Estudo</label>
                   {isEditing ? (
                     <select 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.educationLevel}
                       onChange={(e) => setEditData({ ...editData, educationLevel: e.target.value })}
                     >
@@ -435,12 +435,12 @@ export default function CandidateProfilePage() {
                 {isEditing ? (
                   <div>
                     <textarea 
-                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       rows={3} 
                       maxLength={500}
                       value={editData.aboutMe}
                       onChange={(e) => setEditData({ ...editData, aboutMe: e.target.value })} 
-                      placeholder="Ex: Co founder DConnection Group - 15 anos em prospecção outbound, negociações comerciais. Gerente de negócios Vivo. Especialista B2B em SaaS."
+                      placeholder="Ex: Vendedor Interno - 3 anos em televendas B2B, prospecção ativa, fechamento de vendas. Experiência em SaaS, geração de leads qualificados. Excel avançado, CRM."
                     />
                     <p className="text-xs text-gray-500 mt-1">{editData.aboutMe.length}/500 caracteres</p>
                   </div>
@@ -449,20 +449,7 @@ export default function CandidateProfilePage() {
                 )}
               </div>
 
-              {/* Bio Section */}
-              <div className="border-t border-gray-200 pt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bio / Sobre você</label>
-                {isEditing ? (
-                  <textarea 
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
-                    rows={4} 
-                    value={editData.bio}
-                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })} 
-                  />
-                ) : (
-                  <p className="text-gray-800 whitespace-pre-wrap">{profile.bio || '—'}</p>
-                )}
-              </div>
+
 
               {/* Competencies Section */}
               <div className="border-t border-gray-200 pt-6">
@@ -486,7 +473,7 @@ export default function CandidateProfilePage() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving || editCompetencies.length < 4}
-                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-all shadow-md"
+                    className="flex-1 bg-[#2ecc71] text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#27ae60] transition-all shadow-md"
                   >
                     {isSaving ? '💾 Salvando...' : '✓ Salvar Perfil'}
                   </button>

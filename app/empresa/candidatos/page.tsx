@@ -155,20 +155,20 @@ export default function CandidatosPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
-      <nav className="bg-white shadow-sm border-b-4 border-blue-600">
+      <nav className="bg-gradient-to-r from-[#1a3a52] to-[#2d5a7b] shadow-lg border-b-4 border-[#FF9500]">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-blue-600">ScaleConnect</div>
-          <Link href="/empresa/dashboard" className="text-blue-600 font-semibold hover:text-blue-800">← Dashboard</Link>
+          <div className="text-2xl font-bold text-white">ScaleConnect</div>
+          <Link href="/empresa/dashboard" className="text-white font-semibold hover:text-[#FF9500] transition">← Dashboard</Link>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">🔍 Buscar Candidatos</h1>
+        <h1 className="text-4xl font-bold text-[#1a3a52] mb-2">🔍 Buscar Candidatos</h1>
         <p className="text-gray-600 mb-8">Encontre o candidato ideal usando os filtros abaixo</p>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Filtros de Busca</h2>
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border-l-4 border-[#FF9500]">
+          <h2 className="text-xl font-bold text-[#1a3a52] mb-6">Filtros de Busca</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {/* Estado */}
@@ -177,7 +177,7 @@ export default function CandidatosPage() {
               <select
                 value={filters.state}
                 onChange={(e) => handleFilterChange('state', e.target.value)}
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               >
                 <option value="">Todos os estados</option>
                 <option value="AC">Acre</option>
@@ -218,7 +218,7 @@ export default function CandidatosPage() {
                 value={filters.city}
                 onChange={(e) => handleFilterChange('city', e.target.value)}
                 placeholder="Ex: São Paulo"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               />
             </div>
 
@@ -230,7 +230,7 @@ export default function CandidatosPage() {
                 value={filters.ageMin}
                 onChange={(e) => handleFilterChange('ageMin', e.target.value)}
                 placeholder="Ex: 25"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               />
             </div>
 
@@ -242,7 +242,7 @@ export default function CandidatosPage() {
                 value={filters.ageMax}
                 onChange={(e) => handleFilterChange('ageMax', e.target.value)}
                 placeholder="Ex: 45"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               />
             </div>
 
@@ -252,7 +252,7 @@ export default function CandidatosPage() {
               <select
                 value={filters.educationLevel}
                 onChange={(e) => handleFilterChange('educationLevel', e.target.value)}
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               >
                 <option value="">Todos os níveis</option>
                 <option value="Ensino Fundamental">Ensino Fundamental</option>
@@ -273,14 +273,14 @@ export default function CandidatosPage() {
                 value={filters.keyword}
                 onChange={(e) => handleFilterChange('keyword', e.target.value)}
                 placeholder="Ex: agronegócio, SaaS, vendas"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition"
               />
             </div>
           </div>
 
           <button
             onClick={resetFilters}
-            className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400 transition"
+            className="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition"
           >
             🔄 Limpar Filtros
           </button>
@@ -288,16 +288,16 @@ export default function CandidatosPage() {
 
         {/* Resultados */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Resultados: <span className="text-blue-600">{filteredCandidates.length}</span> candidato(s)
+          <h2 className="text-2xl font-bold text-[#1a3a52] mb-4">
+            Resultados: <span className="text-[#FF9500]">{filteredCandidates.length}</span> candidato(s)
           </h2>
 
           {filteredCandidates.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-12 text-center border border-gray-200">
+            <div className="bg-white rounded-lg shadow-lg p-12 text-center border-l-4 border-[#FF9500]">
               <p className="text-gray-600 text-lg">Nenhum candidato encontrado com esses filtros.</p>
               <button
                 onClick={resetFilters}
-                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="mt-4 px-6 py-2 bg-[#FF9500] text-white rounded-lg font-semibold hover:bg-[#e68a00] transition"
               >
                 Limpar Filtros
               </button>
@@ -305,7 +305,7 @@ export default function CandidatosPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCandidates.map((candidate) => (
-                <div key={candidate.id} className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 hover:shadow-xl transition">
+                <div key={candidate.id} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-[#FF9500] hover:shadow-xl transition">
                   <div className="flex items-center gap-4 mb-4">
                     <img
                       src={candidate.profilePhoto || '/default-profile.jpg'}
@@ -315,7 +315,7 @@ export default function CandidatosPage() {
                     />
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">{candidate.fullName}</h3>
-                      <p className="text-sm text-blue-600 font-semibold">{candidate.currentPosition}</p>
+                      <p className="text-sm text-[#FF9500] font-semibold">{candidate.currentPosition}</p>
                     </div>
                   </div>
 
@@ -325,16 +325,16 @@ export default function CandidatosPage() {
                     <p><strong>🎓 Estudo:</strong> {candidate.educationLevel}</p>
                   </div>
 
-                  <div className="bg-blue-50 rounded-lg p-3 mb-4 border-l-4 border-blue-500">
+                  <div className="bg-orange-50 rounded-lg p-3 mb-4 border-l-4 border-[#FF9500]">
                     <p className="text-xs font-semibold text-gray-700 mb-1">Sobre:</p>
                     <p className="text-sm text-gray-700 line-clamp-3">{candidate.aboutMe || 'Sem informações'}</p>
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                    <button className="flex-1 px-4 py-2 bg-[#1a3a52] text-white rounded-lg font-semibold hover:bg-[#2d5a7b] transition shadow-md">
                       Ver Perfil
                     </button>
-                    <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                    <button className="flex-1 px-4 py-2 bg-[#FF9500] text-white rounded-lg font-semibold hover:bg-[#e68a00] transition shadow-md">
                       Contatar
                     </button>
                   </div>
