@@ -287,7 +287,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.phone
+                      value={editData.phone}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })} 
                     />
                   ) : (
@@ -304,7 +304,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.age
+                      value={editData.age}
                       onChange={(e) => setEditData({ ...editData, age: e.target.value })} 
                     />
                   ) : (
@@ -321,7 +321,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.currentPosition
+                      value={editData.currentPosition}
                       onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })}
                     >
                       <option value="">Selecione seu cargo</option>
@@ -364,7 +364,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.currentCompany
+                      value={editData.currentCompany}
                       onChange={(e) => setEditData({ ...editData, currentCompany: e.target.value })} 
                     />
                   ) : (
@@ -381,7 +381,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.yearsOfExperience
+                      value={editData.yearsOfExperience}
                       onChange={(e) => setEditData({ ...editData, yearsOfExperience: e.target.value })} 
                     />
                   ) : (
@@ -398,7 +398,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.linkedinUrl
+                      value={editData.linkedinUrl}
                       onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })} 
                     />
                   ) : (
@@ -419,7 +419,7 @@ export default function CandidateProfilePage() {
                           ? 'border-red-500 focus:border-red-600 bg-red-50'
                           : 'border-gray-300 focus:border-[#FF9500]'
                       }`}
-                      value={editData.state
+                      value={editData.state}
                       onChange={(e) => setEditData({ ...editData, state: e.target.value })}
                     >
                       <option value="">Selecione seu estado</option>
