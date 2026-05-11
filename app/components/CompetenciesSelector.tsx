@@ -105,7 +105,7 @@ export default function CompetenciesSelector({
             selectedCompetencies.map(comp => (
               <span
                 key={comp.id}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 text-white text-sm font-semibold shadow-md"
               >
                 ✓ {comp.nome}
               </span>
@@ -119,7 +119,7 @@ export default function CompetenciesSelector({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Competências
           <span className="text-red-500 ml-1">*</span>
           <span className="text-xs text-gray-500 ml-2">
@@ -132,7 +132,7 @@ export default function CompetenciesSelector({
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Buscar competência..."
+            placeholder="🔍 Buscar competência..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value)
@@ -140,14 +140,14 @@ export default function CompetenciesSelector({
             }}
             onFocus={() => setShowSuggestions(true)}
             disabled={!isEditing}
-            className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 transition-all"
           />
 
           {/* Suggestions Dropdown */}
           {showSuggestions && searchTerm.trim() && (
             <div
               ref={suggestionsRef}
-              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto"
             >
               {isLoading ? (
                 <div className="p-4 text-center text-gray-500">Carregando...</div>
@@ -160,7 +160,7 @@ export default function CompetenciesSelector({
                   <button
                     key={comp.id}
                     onClick={() => handleAddCompetency(comp)}
-                    className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 font-medium text-gray-700"
                   >
                     {comp.nome}
                   </button>
@@ -172,41 +172,43 @@ export default function CompetenciesSelector({
 
         {/* Error Message */}
         {error && (
-          <p className="text-red-500 text-sm mt-2">{error}</p>
+          <p className="text-red-500 text-sm mt-2">❌ {error}</p>
         )}
 
         {/* Validation Message */}
         {selectedCompetencies.length < 4 && selectedCompetencies.length > 0 && (
-          <p className="text-orange-600 text-sm mt-2">
+          <p className="text-orange-600 text-sm mt-2 font-medium">
             ⚠️ Adicione mais {4 - selectedCompetencies.length} competência(s)
           </p>
         )}
 
         {selectedCompetencies.length === 0 && (
-          <p className="text-red-600 text-sm mt-2">
+          <p className="text-red-600 text-sm mt-2 font-medium">
             ❌ Selecione no mínimo 4 competências
           </p>
         )}
       </div>
 
-      {/* Selected Competencies */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">
-          Competências selecionadas ({selectedCompetencies.length}/∞)
+      {/* Selected Competencies - GREEN BUTTONS */}
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-gray-700">
+          Competências selecionadas ({selectedCompetencies.length})
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {selectedCompetencies.length === 0 ? (
             <p className="text-gray-500 text-sm italic">Nenhuma competência selecionada ainda</p>
           ) : (
             selectedCompetencies.map(comp => (
               <div
                 key={comp.id}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-green-100 text-green-800 font-medium border-2 border-green-400 shadow-sm hover:shadow-md transition-shadow"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 text-white font-semibold shadow-lg hover:shadow-xl hover:bg-green-600 transition-all"
               >
-                <span>✓ {comp.nome}</span>
+                <span className="text-lg">✓</span>
+                <span>{comp.nome}</span>
                 <button
                   onClick={() => handleRemoveCompetency(comp.id)}
-                  className="ml-1 text-green-700 hover:text-green-900 font-bold text-lg leading-none"
+                  className="ml-1 text-white hover:text-gray-100 font-bold text-xl leading-none hover:scale-125 transition-transform"
+                  title="Remover competência"
                 >
                   ×
                 </button>
@@ -217,10 +219,10 @@ export default function CompetenciesSelector({
       </div>
 
       {/* Status Indicator */}
-      <div className={`p-3 rounded-lg text-sm font-medium ${
+      <div className={`p-4 rounded-lg text-sm font-semibold border-2 transition-all ${
         isMinimumMet
-          ? 'bg-green-100 text-green-800 border border-green-300'
-          : 'bg-red-100 text-red-800 border border-red-300'
+          ? 'bg-green-50 text-green-800 border-green-300'
+          : 'bg-red-50 text-red-800 border-red-300'
       }`}>
         {isMinimumMet ? (
           '✅ Você tem competências suficientes para salvar'
