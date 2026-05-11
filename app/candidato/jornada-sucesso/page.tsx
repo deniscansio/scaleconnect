@@ -44,7 +44,7 @@ export default function JornadaSucessoPage() {
         setError(null)
 
         // Obter token do localStorage
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('scaleconnect_token')
         if (!token) {
           setError('Você precisa estar autenticado')
           setLoading(false)
