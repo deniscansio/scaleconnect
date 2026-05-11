@@ -29,9 +29,7 @@ interface CandidateProfile {
 }
 
 export default function JornadaSucessoPage() {
-  const [currentPositionId, setCurrentPositionId] = useState<number | null>(null)
   const [selectedCareerGoalId, setSelectedCareerGoalId] = useState<number | null>(null)
-  const [showPositionSelector, setShowPositionSelector] = useState(false)
   const [completedCourses, setCompletedCourses] = useState<CompletedCourse[]>([])
   const [uploadingCourseId, setUploadingCourseId] = useState<number | null>(null)
   const [viewingCertificate, setViewingCertificate] = useState<string | null>(null)
@@ -63,19 +61,6 @@ export default function JornadaSucessoPage() {
         if (profileResponse.ok) {
           const profile = await profileResponse.json()
           setCandidateProfile(profile)
-          
-          // Se tem cargo no perfil, buscar o ID correspondente
-          if (profile.currentPosition) {
-            const position = getPositionByTitle(profile.currentPosition)
-            if (position) {
-              setCurrentPositionId(position.id)
-              setSelectedCareerGoalId(position.id)
-            } else {
-              setShowPositionSelector(true)
-            }
-          } else {
-            setShowPositionSelector(true)
-          }
         }
 
         // Buscar competências do candidato
@@ -181,9 +166,22 @@ export default function JornadaSucessoPage() {
     return allCourses.filter(course => course.competency === competency)
   }
 
-  const currentPosition = currentPositionId ? careerPositions.find(p => p.id === currentPositionId) : null
-  const selectedCareerGoal = selectedCareerGoalId ? careerPositions.find(p => p.id === selectedCareerGoalId) : null
+  // Buscar cargo atual do perfil
+  const currentPosition = candidateProfile?.currentPosition 
+    ? getPositionByTitle(candidateProfile.currentPosition)
+    : null
+
+  // Buscar cargo desejado
+  const selectedCareerGoal = selectedCareerGoalId 
+    ? careerPositions.find(p => p.id === selectedCareerGoalId)
+    : null
+
   const developedComps = getDevelopedCompetencies()
+
+  // Filtrar cargos (excluir cargo atual)
+  const availablePositions = currentPosition
+    ? careerPositions.filter(p => p.id !== currentPosition.id)
+    : careerPositions
 
   if (loading) {
     return (
@@ -220,37 +218,7 @@ export default function JornadaSucessoPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        {/* SEÇÃO 1: SELETOR DE CARGO ATUAL */}
-        {showPositionSelector && !currentPositionId ? (
-          <div className="mb-12">
-            <div className="bg-white rounded-lg shadow-lg p-8 border-l-8 border-blue-500">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">👤 Qual é seu cargo atual?</h2>
-              <p className="text-gray-600 mb-8">Selecione o cargo que melhor descreve sua posição atual para personalizarmos sua jornada de carreira.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {careerPositions.map((position) => (
-                  <button
-                    key={position.id}
-                    onClick={() => {
-                      setCurrentPositionId(position.id)
-                      setSelectedCareerGoalId(position.id)
-                      setShowPositionSelector(false)
-                    }}
-                    className="p-4 border-2 border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition text-left"
-                  >
-                    <h3 className="font-bold text-gray-900">{position.title}</h3>
-                    <p className="text-sm text-gray-600 mt-2">{position.description}</p>
-                    <p className="text-orange-600 font-semibold mt-3">
-                      R$ {position.salaryMin.toLocaleString('pt-BR')} - R$ {position.salaryMax.toLocaleString('pt-BR')}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* SEÇÃO 2: CARGO ATUAL */}
+        {/* SEÇÃO 1: CARGO ATUAL */}
         {currentPosition && (
           <div className="mb-12">
             <div className="bg-white rounded-lg shadow-lg p-8 border-l-8 border-green-500">
@@ -261,22 +229,26 @@ export default function JornadaSucessoPage() {
                       ✓
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{currentPosition.title}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900">Você está aqui!</h2>
+                      <p className="text-gray-600 text-lg font-semibold">{currentPosition.title}</p>
                       <p className="text-gray-600 text-sm">{currentPosition.description}</p>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-orange-600">
-                    R$ {calculateAverageSalary(currentPosition).toLocaleString('pt-BR')}
+                    R$ {candidateProfile?.currentSalary 
+                      ? parseFloat(candidateProfile.currentSalary).toLocaleString('pt-BR', {minimumFractionDigits: 2})
+                      : '0,00'
+                    }
                   </div>
-                  <div className="text-sm text-green-600 font-semibold mt-1">Seu cargo atual</div>
+                  <div className="text-sm text-green-600 font-semibold mt-1">Seu salário atual</div>
                 </div>
               </div>
 
               {/* Competências do cargo atual */}
               <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-3">Competências Necessárias:</h3>
+                <h3 className="text-sm font-bold text-gray-700 mb-3">Competências do seu cargo:</h3>
                 <div className="flex flex-wrap gap-2">
                   {currentPosition.requiredCompetencies.map((comp) => {
                     const isCompleted = developedComps.has(comp)
@@ -295,47 +267,43 @@ export default function JornadaSucessoPage() {
                   })}
                 </div>
               </div>
-
-              {/* Botão para mudar cargo */}
-              <button
-                onClick={() => setShowPositionSelector(true)}
-                className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold text-sm"
-              >
-                Alterar cargo atual
-              </button>
             </div>
           </div>
         )}
 
+        {/* SEÇÃO 2: CHAMADA À AÇÃO MOTIVACIONAL */}
+        <div className="mb-12">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-lg p-8 text-white">
+            <h2 className="text-3xl font-bold mb-3">🎯 Pronto para Evoluir?</h2>
+            <p className="text-lg mb-2">
+              Escolha seu próximo cargo ou salário e vá em busca das competências necessárias para conseguir seu tão sonhado cargo!
+            </p>
+            <p className="text-orange-100">
+              💡 Lembre-se: você só alcançará o cargo e salário desejado após completar todas as competências necessárias. Comece agora!
+            </p>
+          </div>
+        </div>
+
         {/* SEÇÃO 3: SELEÇÃO DE CARGO DESEJADO */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">🎯 Escolha seu Cargo Desejado</h2>
-          <p className="text-gray-600 mb-8">
-            Clique no cargo que você deseja alcançar e veja todas as competências necessárias para chegar lá.
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Escolha seu próximo cargo</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {careerPositions.map((position) => {
+            {availablePositions.map((position) => {
               const progress = getPositionProgress(position)
               const isSelected = position.id === selectedCareerGoalId
-              const isCurrent = position.id === currentPositionId
 
               return (
                 <button
                   key={position.id}
                   onClick={() => setSelectedCareerGoalId(position.id)}
-                  className={`p-4 rounded-lg border-2 transition text-left ${
+                  className={`p-4 rounded-lg border-2 transition text-left h-full ${
                     isSelected
                       ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-500'
-                      : isCurrent
-                      ? 'border-green-500 bg-green-50'
                       : 'border-gray-300 hover:border-orange-500 hover:bg-orange-50'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-bold text-gray-900 flex-1">{position.title}</h3>
-                    {isCurrent && <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Atual</span>}
-                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2">{position.title}</h3>
                   
                   <p className="text-sm text-gray-600 mb-3">{position.description}</p>
                   
@@ -349,7 +317,7 @@ export default function JornadaSucessoPage() {
                   {/* Progress bar */}
                   <div className="mb-3">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-700">Progresso</span>
+                      <span className="text-xs font-semibold text-gray-700">Seu progresso</span>
                       <span className="text-xs font-bold text-orange-600">{progress}%</span>
                     </div>
                     <div className="w-full bg-gray-300 rounded-full h-2 overflow-hidden">
@@ -420,15 +388,17 @@ export default function JornadaSucessoPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">📋 Competências Necessárias</h3>
                 <p className="text-gray-600 mb-6">
                   Você precisa de <strong>{selectedCareerGoal.requiredCompetencies.length}</strong> competências para este cargo.
-                  <strong className="text-orange-600 ml-2">
+                  <strong className="text-green-600 ml-2">
                     {selectedCareerGoal.requiredCompetencies.filter(c => developedComps.has(c)).length} adquiridas
+                  </strong>
+                  <strong className="text-red-600 ml-2">
+                    {selectedCareerGoal.requiredCompetencies.filter(c => !developedComps.has(c)).length} faltando
                   </strong>
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {selectedCareerGoal.requiredCompetencies.map((comp) => {
                     const isCompleted = developedComps.has(comp)
-                    const coursesForComp = getCoursesForCompetency(comp)
 
                     return isCompleted ? (
                       <div
@@ -462,6 +432,12 @@ export default function JornadaSucessoPage() {
                       </button>
                     )
                   })}
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                  <p className="text-blue-900 font-semibold">
+                    💡 Clique nas competências em vermelho para acessar os cursos e desenvolvê-las!
+                  </p>
                 </div>
               </div>
             </div>
