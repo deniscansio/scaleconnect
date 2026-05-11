@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import CompetenciesSelector from '@/app/components/CompetenciesSelector'
+import { careerPositions } from '@/app/data/career-positions'
 
 interface Competency {
   id: number
@@ -265,13 +266,35 @@ export default function CandidateProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cargo atual</label>
                   {isEditing ? (
-                    <input 
+                    <select 
                       className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
                       value={editData.currentPosition}
-                      onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })} 
-                    />
+                      onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })}
+                    >
+                      <option value="">Selecione seu cargo</option>
+                      {careerPositions.map((position) => (
+                        <option key={position.id} value={position.title}>
+                          {position.title}
+                        </option>
+                      ))}
+                    </select>
                   ) : (
                     <p className="text-gray-800 font-medium">{profile.currentPosition || '—'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Salário atual / Último salário</label>
+                  {isEditing ? (
+                    <input 
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 transition" 
+                      type="number"
+                      placeholder="Ex: 3500"
+                      value={editData.currentSalary}
+                      onChange={(e) => setEditData({ ...editData, currentSalary: e.target.value })} 
+                    />
+                  ) : (
+                    <p className="text-gray-800 font-medium">{profile.currentSalary ? `R$ ${parseFloat(profile.currentSalary).toLocaleString('pt-BR')}` : '—'}</p>
                   )}
                 </div>
 

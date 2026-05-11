@@ -171,6 +171,14 @@ export default function JornadaSucessoPage() {
     ? getPositionByTitle(candidateProfile.currentPosition)
     : null
 
+  // Debug
+  useEffect(() => {
+    if (candidateProfile?.currentPosition) {
+      console.log('Cargo do perfil:', candidateProfile.currentPosition)
+      console.log('Cargo encontrado:', currentPosition?.title)
+    }
+  }, [candidateProfile, currentPosition])
+
   // Buscar cargo desejado
   const selectedCareerGoal = selectedCareerGoalId 
     ? careerPositions.find(p => p.id === selectedCareerGoalId)
