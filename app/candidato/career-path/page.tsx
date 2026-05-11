@@ -365,17 +365,39 @@ export default function JornadaSucessoPage() {
                     <div className="flex flex-wrap gap-2">
                       {(position.requiredCompetencies || position.competencies).map((comp) => {
                         const isCompleted = developedComps.has(comp)
-                        return (
+                        const coursesForComp = getCoursesForCompetency(comp)
+                        
+                        return isCompleted ? (
                           <span
                             key={comp}
-                            className={`px-3 py-1 text-xs rounded-full font-semibold transition ${
-                              isCompleted
-                                ? 'bg-green-100 text-green-800 border-2 border-green-400'
-                                : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
-                            }`}
+                            className="px-3 py-1 text-xs rounded-full font-semibold bg-green-100 text-green-800 border-2 border-green-400"
                           >
-                            {isCompleted ? '✓ ' : ''}{comp}
+                            ✓ {comp}
                           </span>
+                        ) : (
+                          <button
+                            key={comp}
+                            onClick={() => {
+                              // Scroll para a seção de cursos
+                              const coursesSection = document.querySelector('[data-courses-section]')
+                              if (coursesSection) {
+                                coursesSection.scrollIntoView({ behavior: 'smooth' })
+                                // Highlight a competência
+                                setTimeout(() => {
+                                  const competencyElement = document.querySelector(`[data-competency="${comp}"]`)
+                                  if (competencyElement) {
+                                    competencyElement.classList.add('ring-2', 'ring-red-500')
+                                    setTimeout(() => {
+                                      competencyElement.classList.remove('ring-2', 'ring-red-500')
+                                    }, 3000)
+                                  }
+                                }, 300)
+                              }
+                            }}
+                            className="px-3 py-1 text-xs rounded-full font-semibold bg-red-500 text-white border-2 border-red-600 hover:bg-red-600 transition cursor-pointer hover:shadow-md"
+                          >
+                            {comp}
+                          </button>
                         )
                       })}
                     </div>
@@ -417,7 +439,7 @@ export default function JornadaSucessoPage() {
         )}
 
         {/* SEÇÃO 4: CURSOS RECOMENDADOS */}
-        <div className="mb-12">
+        <div className="mb-12" data-courses-section>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">🎓 Cursos Recomendados para Sua Jornada</h2>
 
           <div className="space-y-6">
@@ -425,7 +447,7 @@ export default function JornadaSucessoPage() {
               const isCompetencyDeveloped = developedComps.has(competency)
 
               return (
-                <div key={competency} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+                <div key={competency} data-competency={competency} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500 transition">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
                     📚 {competency}
                     {isCompetencyDeveloped && <span className="text-green-600 ml-2 text-sm">✓ Desenvolvida</span>}
