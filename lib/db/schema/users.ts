@@ -25,7 +25,7 @@ export const candidateProfiles = mysqlTable('candidate_profiles', {
   gender: varchar('gender', { length: 20 }),
   phone: varchar('phone', { length: 20 }),
   linkedinUrl: varchar('linkedin_url', { length: 255 }),
-  profilePhoto: profilePhoto: text('profile_photo', { textType: 'longtext' }),
+  profilePhoto: text('profile_photo', { textType: 'longtext' }),
   currentPosition: varchar('current_position', { length: 255 }),
   currentCompany: varchar('current_company', { length: 255 }),
   currentSalary: decimal('current_salary', { precision: 10, scale: 2 }),
