@@ -40,33 +40,6 @@ export default function CandidateProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
-
-  // Validar campos obrigatórios
-  const validateFields = () => {
-    const errors: string[] = []
-    
-    if (!editData.fullName?.trim()) errors.push('fullName')
-    if (!editData.age?.trim()) errors.push('age')
-    if (!editData.gender?.trim()) errors.push('gender')
-    if (!editData.email?.trim()) errors.push('email')
-    if (!editData.phone?.trim()) errors.push('phone')
-    if (!editData.currentPosition?.trim()) errors.push('currentPosition')
-    if (!editData.currentCompany?.trim()) errors.push('currentCompany')
-    if (!editData.currentSalary?.toString().trim()) errors.push('currentSalary')
-    if (!editData.yearsOfExperience?.trim()) errors.push('yearsOfExperience')
-    if (!editData.state?.trim()) errors.push('state')
-    if (!editData.city?.trim()) errors.push('city')
-    if (!editData.educationLevel?.trim()) errors.push('educationLevel')
-    if (!editData.aboutMe?.trim()) errors.push('aboutMe')
-    if (editCompetencies.length < 4) errors.push('competencies')
-    
-    setValidationErrors(errors)
-    return errors.length === 0
-  }
-
-  // Função para verificar se um campo tem erro
-  const hasError = (fieldName: string) => validationErrors.includes(fieldName)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -137,13 +110,6 @@ export default function CandidateProfilePage() {
   const handleSave = async () => {
     try {
       setSaveError('')
-      
-      // Validar todos os campos obrigatórios
-      if (!validateFields()) {
-        setSaveError('Por favor, preencha todos os campos obrigatórios marcados em vermelho.')
-        return
-      }
-      
       setIsSaving(true)
       const token = localStorage.getItem('scaleconnect_token')
       if (!token) { alert('Você precisa estar logado.'); return }
@@ -256,18 +222,15 @@ export default function CandidateProfilePage() {
 
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nome completo</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('fullName')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.fullName}
                       onChange={(e) => setEditData({ ...editData, fullName: e.target.value })} 
-                    )/>
+                    />
                   ) : (
                     <p className="text-gray-800 font-medium">{profile.fullName || '—'}</p>
                   )}
@@ -282,11 +245,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('phone')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.phone}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })} 
                     />
@@ -299,11 +258,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Idade</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('age')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.age}
                       onChange={(e) => setEditData({ ...editData, age: e.target.value })} 
                     />
@@ -316,11 +271,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cargo atual</label>
                   {isEditing ? (
                     <select 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('currentPosition')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.currentPosition}
                       onChange={(e) => setEditData({ ...editData, currentPosition: e.target.value })}
                     >
@@ -340,11 +291,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Salário atual / Último salário</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('currentSalary')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       type="number"
                       placeholder="Ex: 3500"
                       value={editData.currentSalary}
@@ -359,11 +306,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Empresa atual</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('currentCompany')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.currentCompany}
                       onChange={(e) => setEditData({ ...editData, currentCompany: e.target.value })} 
                     />
@@ -376,11 +319,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Anos de experiência</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('yearsOfExperience')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.yearsOfExperience}
                       onChange={(e) => setEditData({ ...editData, yearsOfExperience: e.target.value })} 
                     />
@@ -393,11 +332,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('linkedinUrl')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.linkedinUrl}
                       onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })} 
                     />
@@ -414,11 +349,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   {isEditing ? (
                     <select 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('state')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.state}
                       onChange={(e) => setEditData({ ...editData, state: e.target.value })}
                     >
@@ -460,11 +391,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
                   {isEditing ? (
                     <input 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('city')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.city}
                       onChange={(e) => setEditData({ ...editData, city: e.target.value })} 
                       placeholder="Ex: São Paulo"
@@ -478,11 +405,7 @@ export default function CandidateProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nível de Estudo</label>
                   {isEditing ? (
                     <select 
-                      className={`w-full border-2 rounded-lg px-4 py-2 focus:outline-none transition ${
-                        hasError('educationLevel')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50'
-                          : 'border-gray-300 focus:border-[#FF9500]'
-                      }`}
+                      className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#FF9500] transition" 
                       value={editData.educationLevel}
                       onChange={(e) => setEditData({ ...editData, educationLevel: e.target.value })}
                     >
