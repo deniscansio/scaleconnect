@@ -1,70 +1,79 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface Job {
+  id: number
+  title: string
+  jobTitle: string
+  description: string
+  level: string
+  salaryMin: number | null
+  salaryMax: number | null
+  location: string
+  employmentType: string
+  workMode: string
+  status: string
+  competencies: any[]
+  benefits: any[]
+}
+
+interface Application {
+  id: number
+  jobId: number
+  status: string
+}
 
 export default function CandidateJobsPage() {
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: 'Sales Development Representative',
-      company: 'Tech Solutions',
-      location: 'São Paulo, SP',
-      type: 'Full-time',
-      salary: 'R$ 3.000 - R$ 4.500',
-      description: 'Procuramos um SDR experiente para prospecção e geração de leads. Você será responsável por qualificar leads e agendar reuniões com prospects.',
-      requirements: ['2+ anos de experiência', 'Conhecimento de CRM', 'Comunicação excelente', 'Proatividade'],
-      benefits: ['Vale refeição', 'Vale transporte', 'Bônus por performance', 'Treinamento contínuo'],
-      status: 'applied',
-      appliedAt: '2024-03-25',
-    },
-    {
-      id: 2,
-      title: 'Account Executive',
-      company: 'Cloud Corp',
-      location: 'Rio de Janeiro, RJ',
-      type: 'Full-time',
-      salary: 'R$ 5.000 - R$ 8.000',
-      description: 'Buscamos um AE para fechar vendas de software SaaS. Você terá autonomia para gerenciar seu pipeline e atingir metas de receita.',
-      requirements: ['3+ anos como SDR', 'Experiência em vendas B2B', 'Fluência em inglês', 'Conhecimento de SaaS'],
-      benefits: ['Comissão por venda', 'Vale refeição', 'Plano de saúde', 'Bônus anual'],
-      status: 'interested',
-      appliedAt: null,
-    },
-    {
-      id: 3,
-      title: 'Sales Manager',
-      company: 'Business Growth',
-      location: 'Belo Horizonte, MG',
-      type: 'Full-time',
-      salary: 'R$ 8.000 - R$ 12.000',
-      description: 'Gerenciar time de vendas e atingir metas de receita. Você será responsável por recrutar, treinar e motivar a equipe.',
-      requirements: ['5+ anos em vendas', 'Experiência em liderança', 'Conhecimento de CRM avançado', 'Visão estratégica'],
-      benefits: ['Comissão por venda', 'Bônus por performance', 'Plano de saúde premium', 'Carro da empresa'],
-      status: 'interested',
-      appliedAt: null,
-    },
-    {
-      id: 4,
-      title: 'Sales Development Representative',
-      company: 'StartUp XYZ',
-      location: 'São Paulo, SP',
-      type: 'Full-time',
-      salary: 'R$ 2.500 - R$ 3.500',
-      description: 'Startup em crescimento procura SDR para prospecção. Ambiente dinâmico com oportunidades de crescimento rápido.',
-      requirements: ['1+ ano de experiência', 'Proatividade', 'Vontade de aprender', 'Comunicação clara'],
-      benefits: ['Equity na startup', 'Ambiente descontraído', 'Trabalho remoto', 'Treinamento'],
-      status: 'interested',
-      appliedAt: null,
-    },
-  ])
-
-  // ✅ CORRIGIDO
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [appliedJobs, setAppliedJobs] = useState<Application[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedJob, setSelectedJob] = useState<number | null>(null)
 
-  // ✅ ADICIONADOS (faltavam e quebravam o build)
-  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false)
-  const [withdrawalReason, setWithdrawalReason] = useState('')
+  // Buscar vagas reais e candidaturas
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('scaleconnect_token')
+        if (!token) {
+          setLoading(false)
+          return
+        }
+
+        // Buscar vagas públicas
+        const jobsResponse = await fetch('/api/jobs/public', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (jobsResponse.ok) {
+          const jobsData = await jobsResponse.json()
+          setJobs(jobsData)
+        }
+
+        // Buscar candidaturas do candidato
+        const applicationsResponse = await fetch('/api/candidate/applications', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (applicationsResponse.ok) {
+          const applicationsData = await applicationsResponse.json()
+          setAppliedJobs(applicationsData)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  const getJobStatus = (jobId: number) => {
+    const application = appliedJobs.find(app => app.jobId === jobId)
+    return application ? 'applied' : 'interested'
+  }
 
   const getStatusBadge = (status: string) => {
     const statusMap: { [key: string]: { bg: string; text: string; label: string } } = {
@@ -80,23 +89,31 @@ export default function CandidateJobsPage() {
     )
   }
 
-  const handleApply = (id: number) => {
-    setJobs(jobs.map(job =>
-      job.id === id
-        ? { ...job, status: 'applied', appliedAt: new Date().toISOString().split('T')[0] }
-        : job
-    ))
+  const handleApply = async (jobId: number) => {
+    try {
+      const token = localStorage.getItem('scaleconnect_token')
+      if (!token) return
+
+      const response = await fetch('/api/jobs/apply', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ jobId })
+      })
+
+      if (response.ok) {
+        const application = await response.json()
+        setAppliedJobs([...appliedJobs, application])
+      }
+    } catch (error) {
+      console.error('Erro ao candidatar:', error)
+    }
   }
 
-  const handleWithdraw = (id: number, reason: string) => {
-    setJobs(jobs.map(job =>
-      job.id === id
-        ? { ...job, status: 'interested', appliedAt: null }
-        : job
-    ))
-
-    setShowWithdrawalModal(false)
-    setWithdrawalReason('')
+  if (loading) {
+    return <div className="p-8">Carregando...</div>
   }
 
   return (
@@ -142,51 +159,65 @@ export default function CandidateJobsPage() {
               <p className="text-gray-600">Explore vagas alinhadas com sua jornada profissional e ganhe com sua carreira</p>
             </div>
 
-            <div className="space-y-4">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="card bg-white border-l-4 border-candidate-secondary hover:shadow-lg transition cursor-pointer"
-                  onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
-                      <p className="text-candidate-primary font-semibold">{job.company}</p>
-                      <div className="flex gap-4 mt-2 text-sm text-gray-600">
-                        <span>📍 {job.location}</span>
-                        <span>💼 {job.type}</span>
-                        <span>💰 {job.salary}</span>
-                      </div>
-                    </div>
-                    {getStatusBadge(job.status)}
-                  </div>
+            {jobs.length === 0 ? (
+              <div className="bg-white p-8 rounded-lg shadow text-center">
+                <p className="text-gray-600">Nenhuma vaga disponível no momento.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {jobs.map((job) => {
+                  const jobStatus = getJobStatus(job.id)
+                  const isApplied = jobStatus === 'applied'
+                  const application = appliedJobs.find(app => app.jobId === job.id)
 
-                  <p className="text-gray-700 mb-4">{job.description}</p>
-
-                  <div className="flex gap-3 mt-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (job.status === 'interested') {
-                          handleApply(job.id)
-                        }
-                      }}
-                      disabled={job.status === 'applied'}
-                      className="flex-1 px-6 py-2 bg-candidate-secondary text-white rounded-lg font-semibold disabled:opacity-50"
+                  return (
+                    <div
+                      key={job.id}
+                      className="card bg-white border-l-4 border-candidate-secondary hover:shadow-lg transition cursor-pointer"
+                      onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
                     >
-                      {job.status === 'applied' ? '✓ Candidatado' : 'Candidatar-se'}
-                    </button>
-                  </div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                          <p className="text-candidate-primary font-semibold">{job.jobTitle}</p>
+                          <div className="flex gap-4 mt-2 text-sm text-gray-600 flex-wrap">
+                            <span>📍 {job.location}</span>
+                            <span>💼 {job.employmentType}</span>
+                            {job.salaryMin && job.salaryMax && (
+                              <span>💰 R$ {job.salaryMin.toLocaleString()} - R$ {job.salaryMax.toLocaleString()}</span>
+                            )}
+                          </div>
+                        </div>
+                        {getStatusBadge(jobStatus)}
+                      </div>
 
-                  {job.status === 'applied' && (
-                    <p className="text-sm text-green-700 font-semibold mt-2">
-                      ✓ Candidatado em {job.appliedAt}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+                      <p className="text-gray-700 mb-4 line-clamp-2">{job.description}</p>
+
+                      <div className="flex gap-3 mt-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (!isApplied) {
+                              handleApply(job.id)
+                            }
+                          }}
+                          disabled={isApplied}
+                          className="flex-1 px-6 py-2 bg-candidate-secondary text-white rounded-lg font-semibold disabled:opacity-50"
+                        >
+                          {isApplied ? '✓ Candidatado' : 'Candidatar-se'}
+                        </button>
+                      </div>
+
+                      {isApplied && application && (
+                        <p className="text-sm text-green-700 font-semibold mt-2">
+                          ✓ Candidatado em {new Date(application.id).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
 
           </div>
         </div>
