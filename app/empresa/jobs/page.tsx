@@ -192,6 +192,29 @@ export default function CompanyJobsPage() {
     }
   }, [citySearch, formData.state])
 
+  // Buscar total de candidaturas reais
+  useEffect(() => {
+    const fetchApplicationsCount = async () => {
+      try {
+        const token = localStorage.getItem('scaleconnect_token')
+        if (!token) return
+
+        const response = await fetch('/api/company/applications-count', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setTotalCandidaturas(data.totalApplications || 0)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar candidaturas:', error)
+      }
+    }
+
+    fetchApplicationsCount()
+  }, [jobs])
+
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError('')
@@ -372,29 +395,6 @@ export default function CompanyJobsPage() {
 
   const totalVagas = jobs.length
   const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
-
-  // Buscar total de candidaturas reais
-  useEffect(() => {
-    const fetchApplicationsCount = async () => {
-      try {
-        const token = localStorage.getItem('scaleconnect_token')
-        if (!token) return
-
-        const response = await fetch('/api/company/applications-count', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setTotalCandidaturas(data.totalApplications || 0)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar candidaturas:', error)
-      }
-    }
-
-    fetchApplicationsCount()
-  }, [jobs])
 
   const displayTotalCandidaturas = totalCandidaturas
 
