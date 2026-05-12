@@ -62,7 +62,7 @@ function verifyToken(token: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: { id: string } }
 ) {
   let connection: any = null
   try {
@@ -85,7 +85,7 @@ export async function GET(
     }
 
     const companyId = payload.id as number
-    const jobId = parseInt(params.jobId, 10)
+    const jobId = parseInt(params.id, 10)
 
     if (!jobId || isNaN(jobId)) {
       return NextResponse.json(
@@ -95,8 +95,8 @@ export async function GET(
     }
 
     // Obter conexão do pool
-    const pool = getPool()
-    connection = await pool.getConnection()
+    const poolInstance = getPool()
+    connection = await poolInstance.getConnection()
 
     // Passo 1: Validar que a vaga pertence à empresa
     const [jobs] = await connection.execute(
@@ -147,7 +147,7 @@ export async function GET(
     ) as any
 
     // Formatar resposta
-    const formattedApplications = applications.map((app: any) => ({
+    const formattedApplications = (applications || []).map((app: any) => ({
       applicationId: app.applicationId,
       status: app.status,
       appliedAt: app.appliedAt,
