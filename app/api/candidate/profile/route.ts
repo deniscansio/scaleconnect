@@ -79,6 +79,10 @@ export async function POST(request: NextRequest) {
       currentCompany: data.currentCompany || '',
       currentSalary: data.currentSalary ? String(data.currentSalary) : undefined,
       yearsOfExperience: data.yearsOfExperience ? Number(data.yearsOfExperience) : undefined,
+      state: data.state || '',
+      city: data.city || '',
+      educationLevel: data.educationLevel || '',
+      aboutMe: data.aboutMe || '',
       bio: data.bio || '',
       skills: data.skills || '',
       updatedAt: new Date()

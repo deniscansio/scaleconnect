@@ -55,11 +55,57 @@ export default function CompanyJobsPage() {
     level: 'PLENO',
     salaryMin: '',
     salaryMax: '',
-    location: '',
+    state: '',
+    city: '',
     description: '',
     employmentType: 'CLT',
     workMode: 'PRESENCIAL',
   })
+
+  const [stateSearch, setStateSearch] = useState('')
+  const [citySearch, setCitySearch] = useState('')
+  const [stateSuggestions, setStateSuggestions] = useState<string[]>([])
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([])
+
+  // Estados brasileiros
+  const brazilianStates = [
+    'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará', 'Distrito Federal',
+    'Espírito Santo', 'Goiás', 'Maranhão', 'Mato Grosso', 'Mato Grosso do Sul',
+    'Minas Gerais', 'Pará', 'Paraíba', 'Paraná', 'Pernambuco', 'Piauí',
+    'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia',
+    'Roraima', 'Santa Catarina', 'São Paulo', 'Sergipe', 'Tocantins'
+  ]
+
+  // Cidades principais por estado (exemplo simplificado)
+  const citiesByState: { [key: string]: string[] } = {
+    'São Paulo': ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'Sorocaba'],
+    'Rio de Janeiro': ['Rio de Janeiro', 'Niterói', 'Duque de Caxias', 'São Gonçalo'],
+    'Minas Gerais': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora'],
+    'Bahia': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari'],
+    'Ceará': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú'],
+    'Pernambuco': ['Recife', 'Jaboatão dos Guararapes', 'Olinda', 'Caruaru'],
+    'Paraná': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa'],
+    'Rio Grande do Sul': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Santa Maria'],
+    'Santa Catarina': ['Florianópolis', 'Blumenau', 'Joinville', 'Chapecó'],
+    'Distrito Federal': ['Brasília'],
+    'Goiás': ['Goiânia', 'Anápolis', 'Aparecida de Goiânia'],
+    'Mato Grosso do Sul': ['Campo Grande', 'Dourados', 'Três Lagoas'],
+    'Mato Grosso': ['Cuiabá', 'Várzea Grande', 'Rondonópolis'],
+    'Espírito Santo': ['Vitória', 'Vila Velha', 'Cariacica', 'Linhares'],
+    'Amazonas': ['Manaus', 'Itacoatiara', 'Parintins'],
+    'Pará': ['Belém', 'Ananindeua', 'Santarém', 'Marabá'],
+    'Maranhão': ['São Luís', 'Imperatriz', 'Caxias', 'Timon'],
+    'Piauí': ['Teresina', 'Parnaíba', 'Picos'],
+    'Paraíba': ['João Pessoa', 'Campina Grande', 'Patos'],
+    'Rio Grande do Norte': ['Natal', 'Mossoró', 'Parnamirim'],
+    'Alagoas': ['Maceió', 'Rio Largo', 'Arapiraca'],
+    'Sergipe': ['Aracaju', 'Nossa Senhora do Socorro'],
+    'Rondônia': ['Porto Velho', 'Ariquemes', 'Ji-Paraná'],
+    'Acre': ['Rio Branco', 'Cruzeiro do Sul'],
+    'Amapá': ['Macapá', 'Santana'],
+    'Roraima': ['Boa Vista', 'Rorainópolis'],
+    'Tocantins': ['Palmas', 'Araguaína', 'Gurupi']
+  }
 
   const [selectedJob, setSelectedJob] = useState<number | null>(null)
 
@@ -120,12 +166,37 @@ export default function CompanyJobsPage() {
     }
   }, [jobTitleSearch])
 
+  // Atualizar sugestões de estado
+  useEffect(() => {
+    if (stateSearch.trim()) {
+      const filtered = brazilianStates.filter(state =>
+        state.toLowerCase().includes(stateSearch.toLowerCase())
+      )
+      setStateSuggestions(filtered)
+    } else {
+      setStateSuggestions([])
+    }
+  }, [stateSearch])
+
+  // Atualizar sugestões de cidade
+  useEffect(() => {
+    if (formData.state && citySearch.trim()) {
+      const cities = citiesByState[formData.state] || []
+      const filtered = cities.filter(city =>
+        city.toLowerCase().includes(citySearch.toLowerCase())
+      )
+      setCitySuggestions(filtered)
+    } else {
+      setCitySuggestions([])
+    }
+  }, [citySearch, formData.state])
+
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError('')
 
     // Validar campos obrigatórios
-    if (!formData.title || !formData.jobTitle || !formData.description || !formData.location || !formData.employmentType || !formData.workMode) {
+    if (!formData.title || !formData.jobTitle || !formData.description || !formData.state || !formData.city || !formData.employmentType || !formData.workMode) {
       setFormError('Todos os campos obrigatórios devem ser preenchidos')
       return
     }
@@ -150,7 +221,16 @@ export default function CompanyJobsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
+          title: formData.title,
+          jobTitle: formData.jobTitle,
+          level: formData.level,
+          salaryMin: formData.salaryMin,
+          salaryMax: formData.salaryMax,
+          state: formData.state,
+          city: formData.city,
+          description: formData.description,
+          employmentType: formData.employmentType,
+          workMode: formData.workMode,
           competenciesIds: selectedCompetencies,
           benefitsIds: selectedBenefits,
         }),
@@ -164,12 +244,15 @@ export default function CompanyJobsPage() {
           level: 'PLENO',
           salaryMin: '',
           salaryMax: '',
-          location: '',
+          state: '',
+          city: '',
           description: '',
           employmentType: 'CLT',
           workMode: 'PRESENCIAL',
         })
         setJobTitleSearch('')
+        setStateSearch('')
+        setCitySearch('')
         setSelectedCompetencies([])
         setSelectedBenefits([])
         setShowForm(false)
@@ -440,19 +523,83 @@ export default function CompanyJobsPage() {
                   </select>
                 </div>
 
-                {/* Localização */}
+                {/* Estado */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Localização *
+                    Estado *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: São Paulo, SP"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={stateSearch || formData.state}
+                      onChange={(e) => {
+                        setStateSearch(e.target.value)
+                        setFormData({ ...formData, state: e.target.value, city: '' })
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Digite ou selecione um estado"
+                      required
+                      autoComplete="off"
+                    />
+                    {stateSuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {stateSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, state: suggestion, city: '' })
+                              setStateSearch(suggestion)
+                              setStateSuggestions([])
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cidade */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cidade *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={citySearch || formData.city}
+                      onChange={(e) => {
+                        setCitySearch(e.target.value)
+                        setFormData({ ...formData, city: e.target.value })
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Digite ou selecione uma cidade"
+                      required
+                      autoComplete="off"
+                      disabled={!formData.state}
+                    />
+                    {citySuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {citySuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, city: suggestion })
+                              setCitySearch(suggestion)
+                              setCitySuggestions([])
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Salário Mínimo */}

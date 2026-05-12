@@ -126,10 +126,10 @@ export async function POST(request: NextRequest) {
     const companyId = payload.userId as number
     const body = await request.json()
 
-    const { title, jobTitle, description, level, salaryMin, salaryMax, location, employmentType, workMode, competenciesIds, benefitsIds } = body
+    const { title, jobTitle, description, level, salaryMin, salaryMax, state, city, employmentType, workMode, competenciesIds, benefitsIds } = body
 
     // Validar campos obrigatórios
-    if (!title || !jobTitle || !description || !location || !employmentType || !workMode) {
+    if (!title || !jobTitle || !description || !state || !city || !employmentType || !workMode) {
       return NextResponse.json(
         { message: 'Todos os campos obrigatórios devem ser preenchidos' },
         { status: 400 }
@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
     connection = await getConnection()
 
     // Criar a vaga
+    const location = `${city}, ${state}`
     const [result] = await connection.execute(
       `INSERT INTO job_postings (company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
