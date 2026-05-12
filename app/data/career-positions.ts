@@ -1,793 +1,370 @@
-'use client'
+// Estrutura de cargos com competências necessárias
+// Salários baseados em pesquisa de mercado 2024
 
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { careerPositions } from '@/app/data/career-positions'
-
-interface Competency {
-  id: number
-  nome: string
-}
-
-interface Benefit {
-  id: number
-  nome: string
-  icone: string
-}
-
-interface Job {
+export interface CareerPosition {
   id: number
   title: string
-  jobTitle: string
   description: string
-  level: string
-  salaryMin: number | null
-  salaryMax: number | null
-  location: string
-  employmentType: string
-  workMode: string
-  status: string
-  competencies: Competency[]
-  benefits: Benefit[]
-  createdAt: string
-  updatedAt: string
+  salaryMin: number
+  salaryMax: number
+  requiredCompetencies: string[]
 }
 
-export default function CompanyJobsPage() {
-  const router = useRouter()
-  const [showForm, setShowForm] = useState(false)
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [allCompetencies, setAllCompetencies] = useState<Competency[]>([])
-  const [allBenefits, setAllBenefits] = useState<Benefit[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedCompetencies, setSelectedCompetencies] = useState<number[]>([])
-  const [selectedBenefits, setSelectedBenefits] = useState<number[]>([])
-  const [showCompetenciesModal, setShowCompetenciesModal] = useState(false)
-  const [showBenefitsModal, setShowBenefitsModal] = useState(false)
-  const [formError, setFormError] = useState('')
-  const [jobTitleSearch, setJobTitleSearch] = useState('')
-  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([])
-  const [totalCandidaturas, setTotalCandidaturas] = useState(0)
-
-  const [formData, setFormData] = useState({
-    title: '',
-    jobTitle: '',
-    level: 'PLENO',
-    salaryMin: '',
-    salaryMax: '',
-    state: '',
-    city: '',
-    description: '',
-    employmentType: 'CLT',
-    workMode: 'PRESENCIAL',
-  })
-
-  const [stateSearch, setStateSearch] = useState('')
-  const [citySearch, setCitySearch] = useState('')
-  const [stateSuggestions, setStateSuggestions] = useState<string[]>([])
-  const [citySuggestions, setCitySuggestions] = useState<string[]>([])
-
-  const brazilianStates = [
-    'Acre', 'Alagoas', 'Amapá', 'Amazonas', 'Bahia', 'Ceará', 'Distrito Federal',
-    'Espírito Santo', 'Goiás', 'Maranhão', 'Mato Grosso', 'Mato Grosso do Sul',
-    'Minas Gerais', 'Pará', 'Paraíba', 'Paraná', 'Pernambuco', 'Piauí',
-    'Rio de Janeiro', 'Rio Grande do Norte', 'Rio Grande do Sul', 'Rondônia',
-    'Roraima', 'Santa Catarina', 'São Paulo', 'Sergipe', 'Tocantins'
-  ]
-
-  const citiesByState: { [key: string]: string[] } = {
-    'São Paulo': ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'Sorocaba'],
-    'Rio de Janeiro': ['Rio de Janeiro', 'Niterói', 'Duque de Caxias', 'São Gonçalo'],
-    'Minas Gerais': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora'],
-    'Bahia': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari'],
-    'Ceará': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú'],
-    'Pernambuco': ['Recife', 'Jaboatão dos Guararapes', 'Olinda', 'Caruaru'],
-    'Paraná': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa'],
-    'Rio Grande do Sul': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Santa Maria'],
-    'Santa Catarina': ['Florianópolis', 'Blumenau', 'Joinville', 'Chapecó'],
-    'Distrito Federal': ['Brasília'],
-    'Goiás': ['Goiânia', 'Anápolis', 'Aparecida de Goiânia'],
-    'Mato Grosso do Sul': ['Campo Grande', 'Dourados', 'Três Lagoas'],
-    'Mato Grosso': ['Cuiabá', 'Várzea Grande', 'Rondonópolis'],
-    'Espírito Santo': ['Vitória', 'Vila Velha', 'Cariacica', 'Linhares'],
-    'Amazonas': ['Manaus', 'Itacoatiara', 'Parintins'],
-    'Pará': ['Belém', 'Ananindeua', 'Santarém', 'Marabá'],
-    'Maranhão': ['São Luís', 'Imperatriz', 'Caxias', 'Timon'],
-    'Piauí': ['Teresina', 'Parnaíba', 'Picos'],
-    'Paraíba': ['João Pessoa', 'Campina Grande', 'Patos'],
-    'Rio Grande do Norte': ['Natal', 'Mossoró', 'Parnamirim'],
-    'Alagoas': ['Maceió', 'Rio Largo', 'Arapiraca'],
-    'Sergipe': ['Aracaju', 'Nossa Senhora do Socorro'],
-    'Rondônia': ['Porto Velho', 'Ariquemes', 'Ji-Paraná'],
-    'Acre': ['Rio Branco', 'Cruzeiro do Sul'],
-    'Amapá': ['Macapá', 'Santana'],
-    'Roraima': ['Boa Vista', 'Rorainópolis'],
-    'Tocantins': ['Palmas', 'Araguaína', 'Gurupi']
+export const careerPositions: CareerPosition[] = [
+  {
+    id: 1,
+    title: 'Telemarketing / Operador',
+    description: 'Profissional responsável por contatos telefônicos, qualificação de leads e agendamentos',
+    salaryMin: 1600,
+    salaryMax: 2500,
+    requiredCompetencies: [
+      'Comunicação Verbal',
+      'Escuta Ativa',
+      'Cold Call',
+      'Qualificação de Leads',
+      'Organização',
+      'Gestão de Tempo',
+      'Proatividade',
+      'Empatia'
+    ]
+  },
+  {
+    id: 2,
+    title: 'LDR (Lead Development Rep)',
+    description: 'Especialista em qualificação e desenvolvimento de leads para o time de vendas',
+    salaryMin: 2000,
+    salaryMax: 3800,
+    requiredCompetencies: [
+      'Qualificação de Leads',
+      'Cold Call',
+      'Comunicação Verbal',
+      'CRM',
+      'Geração de Leads',
+      'Follow-up',
+      'Organização',
+      'Proatividade',
+      'Resiliência'
+    ]
+  },
+  {
+    id: 3,
+    title: 'Vendedor Interno',
+    description: 'Profissional que realiza vendas por telefone ou chat, trabalhando com leads qualificados',
+    salaryMin: 2000,
+    salaryMax: 4000,
+    requiredCompetencies: [
+      'Inside Sales',
+      'Negociação',
+      'Comunicação Verbal',
+      'CRM',
+      'Fechamento de Vendas',
+      'Follow-up',
+      'Empatia',
+      'Resiliência',
+      'Organização'
+    ]
+  },
+  {
+    id: 4,
+    title: 'SDR (Sales Development Representative)',
+    description: 'Especialista em prospecção inbound e qualificação de oportunidades',
+    salaryMin: 2800,
+    salaryMax: 7000,
+    requiredCompetencies: [
+      'Prospecção Inbound',
+      'Negociação',
+      'CRM',
+      'Comunicação',
+      'Cold Call',
+      'Qualificação de Leads',
+      'Follow-up',
+      'Resiliência',
+      'Organização'
+    ]
+  },
+  {
+    id: 5,
+    title: 'Representante Comercial',
+    description: 'Profissional responsável por representar a empresa e desenvolver relacionamentos comerciais',
+    salaryMin: 2500,
+    salaryMax: 5500,
+    requiredCompetencies: [
+      'Relacionamento Interpessoal',
+      'Negociação Comercial',
+      'Comunicação Assertiva',
+      'Prospecção B2B',
+      'Gestão de Carteira',
+      'Follow-up',
+      'Empatia',
+      'Adaptabilidade',
+      'Resiliência'
+    ]
+  },
+  {
+    id: 6,
+    title: 'Vendedor Externo',
+    description: 'Profissional que realiza vendas em campo, visitando clientes e prospects',
+    salaryMin: 2500,
+    salaryMax: 5000,
+    requiredCompetencies: [
+      'Vendas B2B',
+      'Negociação Comercial',
+      'Relacionamento Interpessoal',
+      'Prospecção Outbound',
+      'Gestão de Carteira',
+      'Comunicação Assertiva',
+      'Resiliência',
+      'Adaptabilidade',
+      'Senso de Urgência'
+    ]
+  },
+  {
+    id: 7,
+    title: 'BDR (Business Development Representative)',
+    description: 'Especialista em prospecção outbound e geração de demanda',
+    salaryMin: 3000,
+    salaryMax: 8500,
+    requiredCompetencies: [
+      'Prospecção Outbound',
+      'Negociação Comercial',
+      'CRM Avançado',
+      'Comunicação Verbal',
+      'Cold Call',
+      'Cadência de Prospecção',
+      'Resiliência',
+      'Proatividade',
+      'Senso de Urgência'
+    ]
+  },
+  {
+    id: 8,
+    title: 'Consultor Comercial',
+    description: 'Profissional que oferece consultoria comercial e soluções customizadas',
+    salaryMin: 3000,
+    salaryMax: 6000,
+    requiredCompetencies: [
+      'Vendas Consultivas',
+      'Negociação Comercial',
+      'Análise de Indicadores',
+      'Comunicação Assertiva',
+      'Inteligência Comercial',
+      'Relacionamento Interpessoal',
+      'Pensamento Analítico',
+      'Resiliência',
+      'Empatia'
+    ]
+  },
+  {
+    id: 9,
+    title: 'Closer',
+    description: 'Especialista em fechamento de vendas complexas e de alto valor',
+    salaryMin: 4000,
+    salaryMax: 12000,
+    requiredCompetencies: [
+      'Fechamento de Vendas',
+      'Negociação Comercial',
+      'Vendas Consultivas',
+      'Spin Selling',
+      'Rapport Comercial',
+      'Comunicação Assertiva',
+      'Inteligência Emocional',
+      'Resiliência',
+      'Capacidade de Convencimento'
+    ]
+  },
+  {
+    id: 10,
+    title: 'Executivo de Vendas / AE',
+    description: 'Profissional responsável por fechar vendas e gerenciar relacionamentos comerciais',
+    salaryMin: 5000,
+    salaryMax: 12000,
+    requiredCompetencies: [
+      'Vendas Consultivas',
+      'Negociação Comercial',
+      'Gestão de Contas',
+      'Análise de Indicadores',
+      'CRM Avançado',
+      'Excel Avançado',
+      'Comunicação Assertiva',
+      'Relacionamento Interpessoal',
+      'Inteligência Comercial'
+    ]
+  },
+  {
+    id: 11,
+    title: 'Farmer / Account Manager',
+    description: 'Especialista em retenção de clientes e desenvolvimento de contas existentes',
+    salaryMin: 5000,
+    salaryMax: 10000,
+    requiredCompetencies: [
+      'Gestão de Contas',
+      'Customer Success',
+      'Retenção de Clientes',
+      'Upsell',
+      'Cross-sell',
+      'Relacionamento Interpessoal',
+      'Comunicação Assertiva',
+      'Análise de Indicadores',
+      'Empatia'
+    ]
+  },
+  {
+    id: 12,
+    title: 'Executivo de Contas',
+    description: 'Profissional sênior responsável por contas estratégicas e relacionamentos de alto valor',
+    salaryMin: 6000,
+    salaryMax: 15000,
+    requiredCompetencies: [
+      'Gestão de Contas',
+      'Vendas Consultivas',
+      'Negociação Comercial',
+      'Customer Success',
+      'Análise de Indicadores',
+      'Excel Avançado',
+      'Comunicação Assertiva',
+      'Inteligência Comercial',
+      'Relacionamento Interpessoal'
+    ]
+  },
+  {
+    id: 13,
+    title: 'Gerente de Contas / KAM',
+    description: 'Key Account Manager - Gerencia contas-chave e relacionamentos estratégicos',
+    salaryMin: 7000,
+    salaryMax: 18000,
+    requiredCompetencies: [
+      'Gestão de Contas',
+      'Liderança',
+      'Negociação Comercial',
+      'Análise de Indicadores',
+      'Planejamento Comercial',
+      'Comunicação Assertiva',
+      'Inteligência Comercial',
+      'Visão de Negócio',
+      'Relacionamento Interpessoal'
+    ]
+  },
+  {
+    id: 14,
+    title: 'Team Leader Comercial',
+    description: 'Liderança de pequenos times comerciais e supervisão de atividades',
+    salaryMin: 5000,
+    salaryMax: 9000,
+    requiredCompetencies: [
+      'Liderança',
+      'Gestão de Equipes',
+      'Gestão de Performance',
+      'Coaching Comercial',
+      'Comunicação Assertiva',
+      'Gestão de Conflitos',
+      'Motivação de Equipe',
+      'Planejamento Comercial',
+      'Cultura de Feedback'
+    ]
+  },
+  {
+    id: 15,
+    title: 'Supervisor Comercial',
+    description: 'Supervisão de equipes comerciais e garantia de cumprimento de metas',
+    salaryMin: 6000,
+    salaryMax: 12000,
+    requiredCompetencies: [
+      'Liderança',
+      'Gestão de Equipes',
+      'Gestão de Performance',
+      'Análise de Indicadores',
+      'Coaching Comercial',
+      'Comunicação Assertiva',
+      'Gestão de Conflitos',
+      'Planejamento Comercial',
+      'Motivação de Equipe'
+    ]
+  },
+  {
+    id: 16,
+    title: 'Coordenador Comercial',
+    description: 'Coordenação de atividades comerciais e suporte operacional',
+    salaryMin: 8000,
+    salaryMax: 15000,
+    requiredCompetencies: [
+      'Gestão de Equipes',
+      'Organização',
+      'Gestão de Tempo',
+      'Análise de Indicadores',
+      'CRM Avançado',
+      'Excel Avançado',
+      'Comunicação Assertiva',
+      'Planejamento Comercial',
+      'Proatividade'
+    ]
+  },
+  {
+    id: 17,
+    title: 'Gerente Comercial / Vendas',
+    description: 'Gestão estratégica de vendas, metas e desenvolvimento de equipes',
+    salaryMin: 10000,
+    salaryMax: 25000,
+    requiredCompetencies: [
+      'Gestão Comercial',
+      'Liderança',
+      'Gestão de Equipes',
+      'Gestão de Performance',
+      'Planejamento Comercial',
+      'Análise de Indicadores',
+      'Estratégia Comercial',
+      'Visão de Negócio',
+      'Coaching Comercial'
+    ]
+  },
+  {
+    id: 18,
+    title: 'Head Comercial / Head de Vendas',
+    description: 'Liderança executiva de toda a operação comercial e de vendas',
+    salaryMin: 18000,
+    salaryMax: 35000,
+    requiredCompetencies: [
+      'Liderança',
+      'Gestão Comercial',
+      'Estratégia Comercial',
+      'Planejamento Estratégico',
+      'Visão de Negócio',
+      'Gestão de Equipes',
+      'Análise de Indicadores',
+      'Inteligência Comercial',
+      'Tomada de Decisão'
+    ]
+  },
+  {
+    id: 19,
+    title: 'Diretor Comercial / Sales Director',
+    description: 'Direção estratégica de vendas, responsável por crescimento e rentabilidade',
+    salaryMin: 25000,
+    salaryMax: 60000,
+    requiredCompetencies: [
+      'Gestão Comercial',
+      'Liderança',
+      'Estratégia Comercial',
+      'Planejamento Estratégico',
+      'Visão de Negócio',
+      'Tomada de Decisão',
+      'Inteligência Comercial',
+      'Gestão de Equipes',
+      'Negociação Comercial'
+    ]
   }
+]
 
-  const [selectedJob, setSelectedJob] = useState<number | null>(null)
+// Função auxiliar para calcular salário médio
+export const calculateAverageSalary = (position: CareerPosition): number => {
+  return Math.round((position.salaryMin + position.salaryMax) / 2)
+}
 
-  // Buscar vagas, competências e benefícios ao carregar a página
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem('scaleconnect_token')
-        if (!token) {
-          router.push('/login')
-          return
-        }
+// Função auxiliar para buscar cargo por ID
+export const getPositionById = (id: number): CareerPosition | undefined => {
+  return careerPositions.find(p => p.id === id)
+}
 
-        const jobsResponse = await fetch('/api/jobs', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        })
-        if (jobsResponse.ok) {
-          const jobsData = await jobsResponse.json()
-          setJobs(jobsData)
-        }
-
-        const competenciesResponse = await fetch('/api/competencies')
-        if (competenciesResponse.ok) {
-          const competenciesData = await competenciesResponse.json()
-          setAllCompetencies(competenciesData)
-        }
-
-        const benefitsResponse = await fetch('/api/benefits')
-        if (benefitsResponse.ok) {
-          const benefitsData = await benefitsResponse.json()
-          setAllBenefits(benefitsData)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [router])
-
-  // Buscar total de candidaturas reais
-  useEffect(() => {
-    const fetchApplicationsCount = async () => {
-      try {
-        const token = localStorage.getItem('scaleconnect_token')
-        if (!token) return
-
-        const response = await fetch('/api/company/applications-count', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setTotalCandidaturas(data.totalApplications || 0)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar candidaturas:', error)
-      }
-    }
-    fetchApplicationsCount()
-  }, [jobs])
-
-  // Atualizar sugestões de cargo
-  useEffect(() => {
-    if (jobTitleSearch.trim()) {
-      const filtered = careerPositions
-        .map(p => p.title)
-        .filter(title => title.toLowerCase().includes(jobTitleSearch.toLowerCase()))
-      setJobTitleSuggestions(filtered)
-    } else {
-      setJobTitleSuggestions([])
-    }
-  }, [jobTitleSearch])
-
-  // Atualizar sugestões de estado
-  useEffect(() => {
-    if (stateSearch.trim()) {
-      const filtered = brazilianStates.filter(state =>
-        state.toLowerCase().includes(stateSearch.toLowerCase())
-      )
-      setStateSuggestions(filtered)
-    } else {
-      setStateSuggestions([])
-    }
-  }, [stateSearch])
-
-  // Atualizar sugestões de cidade
-  useEffect(() => {
-    if (formData.state && citySearch.trim()) {
-      const cities = citiesByState[formData.state] || []
-      const filtered = cities.filter(city =>
-        city.toLowerCase().includes(citySearch.toLowerCase())
-      )
-      setCitySuggestions(filtered)
-    } else {
-      setCitySuggestions([])
-    }
-  }, [citySearch, formData.state])
-
-  const handleSubmitJob = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError('')
-
-    if (!formData.title || !formData.jobTitle || !formData.description || !formData.state || !formData.city || !formData.employmentType || !formData.workMode) {
-      setFormError('Todos os campos obrigatórios devem ser preenchidos')
-      return
-    }
-
-    if (selectedCompetencies.length < 4) {
-      setFormError('Mínimo de 4 competências é obrigatório')
-      return
-    }
-
-    try {
-      const token = localStorage.getItem('scaleconnect_token')
-      if (!token) {
-        router.push('/login')
-        return
-      }
-
-      const response = await fetch('/api/jobs', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          jobTitle: formData.jobTitle,
-          level: formData.level,
-          salaryMin: formData.salaryMin,
-          salaryMax: formData.salaryMax,
-          state: formData.state,
-          city: formData.city,
-          description: formData.description,
-          employmentType: formData.employmentType,
-          workMode: formData.workMode,
-          competenciesIds: selectedCompetencies,
-          benefitsIds: selectedBenefits,
-        }),
-      })
-
-      if (response.ok) {
-        setFormData({
-          title: '',
-          jobTitle: '',
-          level: 'PLENO',
-          salaryMin: '',
-          salaryMax: '',
-          state: '',
-          city: '',
-          description: '',
-          employmentType: 'CLT',
-          workMode: 'PRESENCIAL',
-        })
-        setJobTitleSearch('')
-        setStateSearch('')
-        setCitySearch('')
-        setSelectedCompetencies([])
-        setSelectedBenefits([])
-        setShowForm(false)
-
-        const jobsResponse = await fetch('/api/jobs', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        })
-        if (jobsResponse.ok) {
-          const jobsData = await jobsResponse.json()
-          setJobs(jobsData)
-        }
-      } else {
-        const error = await response.json()
-        setFormError(error.message || 'Erro ao criar vaga')
-      }
-    } catch (error) {
-      setFormError('Erro ao conectar ao servidor')
-    }
-  }
-
-  const handleDeleteJob = async (jobId: number) => {
-    if (!confirm('Tem certeza que deseja deletar esta vaga?')) return
-
-    try {
-      const token = localStorage.getItem('scaleconnect_token')
-      if (!token) {
-        router.push('/login')
-        return
-      }
-
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
-
-      if (response.ok) {
-        setJobs(jobs.filter(j => j.id !== jobId))
-      } else {
-        alert('Erro ao deletar vaga')
-      }
-    } catch (error) {
-      alert('Erro ao deletar vaga')
-    }
-  }
-
-  const handleCloseJob = async (jobId: number) => {
-    try {
-      const token = localStorage.getItem('scaleconnect_token')
-      if (!token) {
-        router.push('/login')
-        return
-      }
-
-      const job = jobs.find(j => j.id === jobId)
-      if (!job) return
-
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: job.status === 'OPEN' ? 'CLOSED' : 'OPEN',
-        }),
-      })
-
-      if (response.ok) {
-        setJobs(jobs.map(j => j.id === jobId ? { ...j, status: job.status === 'OPEN' ? 'CLOSED' : 'OPEN' } : j))
-      }
-    } catch (error) {
-      alert('Erro ao atualizar vaga')
-    }
-  }
-
-  const toggleCompetency = (competencyId: number) => {
-    setSelectedCompetencies(prev =>
-      prev.includes(competencyId)
-        ? prev.filter(id => id !== competencyId)
-        : [...prev, competencyId]
-    )
-  }
-
-  const toggleBenefit = (benefitId: number) => {
-    setSelectedBenefits(prev =>
-      prev.includes(benefitId)
-        ? prev.filter(id => id !== benefitId)
-        : [...prev, benefitId]
-    )
-  }
-
-  const openCompetenciesModal = () => setShowCompetenciesModal(true)
-  const closeCompetenciesModal = () => setShowCompetenciesModal(false)
-  const openBenefitsModal = () => setShowBenefitsModal(true)
-  const closeBenefitsModal = () => setShowBenefitsModal(false)
-
-  if (loading) {
-    return <div className="p-8">Carregando...</div>
-  }
-
-  const totalVagas = jobs.length
-  const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
-  const displayTotalCandidaturas = totalCandidaturas
-
-  return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">📋 Gerenciar Vagas</h1>
-            <p className="text-gray-600">Publique e gerencie as vagas da sua empresa</p>
-          </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            + Publicar Vaga
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-gray-600 text-sm">📋 Total de Vagas</div>
-            <div className="text-3xl font-bold text-gray-900">{totalVagas}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-gray-600 text-sm">✅ Vagas Abertas</div>
-            <div className="text-3xl font-bold text-green-600">{vagasAbertas}</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="text-gray-600 text-sm">📨 Total de Candidaturas</div>
-            <div className="text-3xl font-bold text-blue-600">{displayTotalCandidaturas}</div>
-          </div>
-        </div>
-
-        {showForm && (
-          <div className="bg-white p-8 rounded-lg shadow mb-8">
-            <h2 className="text-2xl font-bold mb-6">Criar Nova Vaga</h2>
-
-            {formError && (
-              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmitJob} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Título da Vaga *</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: Gerente de Projetos"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cargo *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={jobTitleSearch || formData.jobTitle}
-                      onChange={(e) => {
-                        setJobTitleSearch(e.target.value)
-                        setFormData({ ...formData, jobTitle: e.target.value })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione um cargo"
-                      required
-                      autoComplete="off"
-                    />
-                    {jobTitleSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {jobTitleSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, jobTitle: suggestion })
-                              setJobTitleSearch(suggestion)
-                              setJobTitleSuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nível *</label>
-                  <select
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="JUNIOR">Júnior</option>
-                    <option value="PLENO">Pleno</option>
-                    <option value="SENIOR">Sênior</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Vínculo *</label>
-                  <select
-                    value={formData.employmentType}
-                    onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="CLT">CLT</option>
-                    <option value="PJ">PJ</option>
-                    <option value="AUTONOMO">Autônomo</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Modalidade *</label>
-                  <select
-                    value={formData.workMode}
-                    onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="PRESENCIAL">Presencial</option>
-                    <option value="HIBRIDA">Híbrida</option>
-                    <option value="REMOTO">Remoto</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Estado *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={stateSearch || formData.state}
-                      onChange={(e) => {
-                        setStateSearch(e.target.value)
-                        setFormData({ ...formData, state: e.target.value, city: '' })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione um estado"
-                      required
-                      autoComplete="off"
-                    />
-                    {stateSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {stateSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, state: suggestion, city: '' })
-                              setStateSearch(suggestion)
-                              setStateSuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={citySearch || formData.city}
-                      onChange={(e) => {
-                        setCitySearch(e.target.value)
-                        setFormData({ ...formData, city: e.target.value })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione uma cidade"
-                      required
-                      autoComplete="off"
-                      disabled={!formData.state}
-                    />
-                    {citySuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {citySuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, city: suggestion })
-                              setCitySearch(suggestion)
-                              setCitySuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Salário Mínimo</label>
-                  <input
-                    type="number"
-                    value={formData.salaryMin}
-                    onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: 3000"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Salário Máximo</label>
-                  <input
-                    type="number"
-                    value={formData.salaryMax}
-                    onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: 5000"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Descrição da Vaga *</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Descreva a vaga, responsabilidades e requisitos"
-                  rows={5}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Competências Necessárias * (Mínimo 4)
-                </label>
-                <button
-                  type="button"
-                  onClick={openCompetenciesModal}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50"
-                >
-                  {selectedCompetencies.length > 0
-                    ? `${selectedCompetencies.length} competência(s) selecionada(s)`
-                    : 'Selecione as competências'}
-                </button>
-
-                {showCompetenciesModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
-                      <h3 className="text-lg font-bold mb-4">Selecione as Competências</h3>
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        {allCompetencies.map(comp => (
-                          <label key={comp.id} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedCompetencies.includes(comp.id)}
-                              onChange={() => toggleCompetency(comp.id)}
-                              className="mr-2"
-                            />
-                            {comp.nome}
-                          </label>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={closeCompetenciesModal}
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
-                      >
-                        Confirmar
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Benefícios Oferecidos</label>
-                <button
-                  type="button"
-                  onClick={openBenefitsModal}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50"
-                >
-                  {selectedBenefits.length > 0
-                    ? `${selectedBenefits.length} benefício(s) selecionado(s)`
-                    : 'Selecione os benefícios'}
-                </button>
-
-                {showBenefitsModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
-                      <h3 className="text-lg font-bold mb-4">Selecione os Benefícios</h3>
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        {allBenefits.map(benefit => (
-                          <label key={benefit.id} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedBenefits.includes(benefit.id)}
-                              onChange={() => toggleBenefit(benefit.id)}
-                              className="mr-2"
-                            />
-                            <span>{benefit.icone} {benefit.nome}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={closeBenefitsModal}
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
-                      >
-                        Confirmar
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Publicar Vaga
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        <div className="space-y-6">
-          {jobs.length === 0 ? (
-            <div className="bg-white p-8 rounded-lg shadow text-center">
-              <p className="text-gray-600">Nenhuma vaga cadastrada ainda. Clique em "+ Publicar Vaga" para começar!</p>
-            </div>
-          ) : (
-            jobs.map(job => (
-              <div key={job.id} className="bg-white p-6 rounded-lg shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
-                    <p className="text-sm text-gray-500">{job.jobTitle}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {job.status === 'OPEN' ? 'Aberta' : 'Fechada'}
-                  </span>
-                </div>
-
-                <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
-
-                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                  <div><span className="font-semibold">Nível:</span> {job.level}</div>
-                  <div><span className="font-semibold">Vínculo:</span> {job.employmentType}</div>
-                  <div><span className="font-semibold">Modalidade:</span> {job.workMode}</div>
-                  <div><span className="font-semibold">Localização:</span> {job.location}</div>
-                  {job.salaryMin && job.salaryMax && (
-                    <div>
-                      <span className="font-semibold">Salário:</span> R$ {job.salaryMin.toLocaleString()} - R$ {job.salaryMax.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-
-                {job.competencies && job.competencies.length > 0 && (
-                  <div className="mb-4">
-                    <span className="font-semibold text-sm">Competências:</span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {job.competencies.map(comp => (
-                        <span key={comp.id} className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
-                          {comp.nome}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {job.benefits && job.benefits.length > 0 && (
-                  <div className="mb-4">
-                    <span className="font-semibold text-sm">Benefícios:</span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {job.benefits.map(benefit => (
-                        <span key={benefit.id} className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">
-                          {benefit.icone} {benefit.nome}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleCloseJob(job.id)}
-                    className={`flex-1 font-bold py-2 px-4 rounded-lg text-white ${job.status === 'OPEN' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
-                  >
-                    {job.status === 'OPEN' ? '🔒 Fechar Vaga' : '✅ Reabrir Vaga'}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteJob(job.id)}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg"
-                  >
-                    🗑️ Deletar
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </main>
-  )
+// Função auxiliar para buscar cargo por título
+export const getPositionByTitle = (title: string): CareerPosition | undefined => {
+  return careerPositions.find(p => p.title.toLowerCase() === title.toLowerCase())
 }
