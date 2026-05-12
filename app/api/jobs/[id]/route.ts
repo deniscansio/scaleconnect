@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { jobPostings, jobCompetencies } from '@/lib/db/schema/jobs'
-import { competencies } from '@/lib/db/schema/competencies'
-import { eq, and } from 'drizzle-orm'
+import mysql from 'mysql2/promise'
 import { jwtVerify } from 'jose'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'scaleconnect-super-secret-key-2026')
@@ -16,37 +13,59 @@ async function verifyToken(token: string) {
   }
 }
 
+async function getConnection() {
+  return await mysql.createConnection({
+    uri: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: true
+    }
+  })
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  let connection: any = null
   try {
     const jobId = parseInt(params.id)
+    connection = await getConnection()
 
-    const job = await db.query.jobPostings.findFirst({
-      where: eq(jobPostings.id, jobId),
-    })
+    const [jobs] = await connection.execute(
+      'SELECT id, company_id, title, description, level, salary_min, salary_max, location, status, created_at, updated_at FROM job_postings WHERE id = ?',
+      [jobId]
+    ) as any
 
-    if (!job) {
+    if (jobs.length === 0) {
       return NextResponse.json(
         { message: 'Vaga não encontrada' },
         { status: 404 }
       )
     }
 
+    const job = jobs[0]
+
     // Buscar competências da vaga
-    const jobComps = await db
-      .select({
-        id: competencies.id,
-        nome: competencies.nome,
-      })
-      .from(jobCompetencies)
-      .innerJoin(competencies, eq(jobCompetencies.competenciaId, competencies.id))
-      .where(eq(jobCompetencies.jobId, jobId))
+    const [competencies] = await connection.execute(
+      `SELECT c.id, c.nome FROM competencies c
+       INNER JOIN job_competencies jc ON c.id = jc.competencia_id
+       WHERE jc.job_id = ?`,
+      [jobId]
+    ) as any
 
     return NextResponse.json({
-      ...job,
-      competencies: jobComps,
+      id: job.id,
+      companyId: job.company_id,
+      title: job.title,
+      description: job.description,
+      level: job.level,
+      salaryMin: job.salary_min,
+      salaryMax: job.salary_max,
+      location: job.location,
+      status: job.status,
+      competencies,
+      createdAt: job.created_at,
+      updatedAt: job.updated_at,
     })
   } catch (error) {
     console.error('Erro ao buscar vaga:', error)
@@ -54,6 +73,8 @@ export async function GET(
       { message: 'Erro ao buscar vaga' },
       { status: 500 }
     )
+  } finally {
+    if (connection) await connection.end()
   }
 }
 
@@ -61,6 +82,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -82,16 +104,15 @@ export async function PUT(
 
     const companyId = payload.userId as number
     const jobId = parseInt(params.id)
+    connection = await getConnection()
 
     // Verificar se a vaga pertence à empresa
-    const job = await db.query.jobPostings.findFirst({
-      where: and(
-        eq(jobPostings.id, jobId),
-        eq(jobPostings.companyId, companyId)
-      ),
-    })
+    const [jobs] = await connection.execute(
+      'SELECT id FROM job_postings WHERE id = ? AND company_id = ?',
+      [jobId, companyId]
+    ) as any
 
-    if (!job) {
+    if (jobs.length === 0) {
       return NextResponse.json(
         { message: 'Vaga não encontrada ou sem permissão' },
         { status: 404 }
@@ -102,41 +123,41 @@ export async function PUT(
     const { title, description, level, salaryMin, salaryMax, location, status, competenciesIds } = body
 
     // Atualizar vaga
-    const updateData: any = {
-      title: title || job.title,
-      description: description || job.description,
-      level: level || job.level,
-      location: location || job.location,
-      status: status || job.status,
-    }
-
-    if (salaryMin !== undefined) {
-      updateData.salaryMin = salaryMin ? parseFloat(salaryMin) : null
-    }
-    if (salaryMax !== undefined) {
-      updateData.salaryMax = salaryMax ? parseFloat(salaryMax) : null
-    }
-
-    await db
-      .update(jobPostings)
-      .set(updateData)
-      .where(eq(jobPostings.id, jobId))
+    await connection.execute(
+      `UPDATE job_postings SET 
+        title = COALESCE(?, title),
+        description = COALESCE(?, description),
+        level = COALESCE(?, level),
+        salary_min = COALESCE(?, salary_min),
+        salary_max = COALESCE(?, salary_max),
+        location = COALESCE(?, location),
+        status = COALESCE(?, status)
+       WHERE id = ?`,
+      [
+        title || null,
+        description || null,
+        level || null,
+        salaryMin ? parseFloat(salaryMin) : null,
+        salaryMax ? parseFloat(salaryMax) : null,
+        location || null,
+        status || null,
+        jobId,
+      ]
+    )
 
     // Atualizar competências se fornecidas
     if (competenciesIds && Array.isArray(competenciesIds)) {
       // Remover competências antigas
-      await db.delete(jobCompetencies).where(eq(jobCompetencies.jobId, jobId))
+      await connection.execute('DELETE FROM job_competencies WHERE job_id = ?', [jobId])
 
       // Adicionar novas competências
       if (competenciesIds.length > 0) {
-        await Promise.all(
-          competenciesIds.map((competenciaId) =>
-            db.insert(jobCompetencies).values({
-              jobId,
-              competenciaId,
-            })
+        for (const competenciaId of competenciesIds) {
+          await connection.execute(
+            'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
+            [jobId, competenciaId]
           )
-        )
+        }
       }
     }
 
@@ -147,6 +168,8 @@ export async function PUT(
       { message: 'Erro ao atualizar vaga' },
       { status: 500 }
     )
+  } finally {
+    if (connection) await connection.end()
   }
 }
 
@@ -154,6 +177,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -175,16 +199,15 @@ export async function DELETE(
 
     const companyId = payload.userId as number
     const jobId = parseInt(params.id)
+    connection = await getConnection()
 
     // Verificar se a vaga pertence à empresa
-    const job = await db.query.jobPostings.findFirst({
-      where: and(
-        eq(jobPostings.id, jobId),
-        eq(jobPostings.companyId, companyId)
-      ),
-    })
+    const [jobs] = await connection.execute(
+      'SELECT id FROM job_postings WHERE id = ? AND company_id = ?',
+      [jobId, companyId]
+    ) as any
 
-    if (!job) {
+    if (jobs.length === 0) {
       return NextResponse.json(
         { message: 'Vaga não encontrada ou sem permissão' },
         { status: 404 }
@@ -192,7 +215,7 @@ export async function DELETE(
     }
 
     // Deletar vaga (competências serão deletadas em cascata)
-    await db.delete(jobPostings).where(eq(jobPostings.id, jobId))
+    await connection.execute('DELETE FROM job_postings WHERE id = ?', [jobId])
 
     return NextResponse.json({ message: 'Vaga deletada com sucesso' })
   } catch (error) {
@@ -201,5 +224,7 @@ export async function DELETE(
       { message: 'Erro ao deletar vaga' },
       { status: 500 }
     )
+  } finally {
+    if (connection) await connection.end()
   }
 }

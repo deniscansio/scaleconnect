@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { jobPostings, jobCompetencies } from '@/lib/db/schema/jobs'
-import { competencies } from '@/lib/db/schema/competencies'
-import { eq } from 'drizzle-orm'
+import mysql from 'mysql2/promise'
 import { jwtVerify } from 'jose'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'scaleconnect-super-secret-key-2026')
@@ -16,7 +13,17 @@ async function verifyToken(token: string) {
   }
 }
 
+async function getConnection() {
+  return await mysql.createConnection({
+    uri: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: true
+    }
+  })
+}
+
 export async function GET(request: NextRequest) {
+  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -37,27 +44,37 @@ export async function GET(request: NextRequest) {
     }
 
     const companyId = payload.userId as number
+    connection = await getConnection()
 
-    // Buscar todas as vagas da empresa
-    const jobs = await db.query.jobPostings.findMany({
-      where: eq(jobPostings.companyId, companyId),
-    })
+    // Buscar vagas
+    const [jobs] = await connection.execute(
+      'SELECT id, company_id, title, description, level, salary_min, salary_max, location, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
+      [companyId]
+    ) as any
 
     // Para cada vaga, buscar as competências
     const jobsWithCompetencies = await Promise.all(
-      jobs.map(async (job) => {
-        const jobComps = await db
-          .select({
-            id: competencies.id,
-            nome: competencies.nome,
-          })
-          .from(jobCompetencies)
-          .innerJoin(competencies, eq(jobCompetencies.competenciaId, competencies.id))
-          .where(eq(jobCompetencies.jobId, job.id))
+      jobs.map(async (job: any) => {
+        const [competencies] = await connection.execute(
+          `SELECT c.id, c.nome FROM competencies c
+           INNER JOIN job_competencies jc ON c.id = jc.competencia_id
+           WHERE jc.job_id = ?`,
+          [job.id]
+        ) as any
 
         return {
-          ...job,
-          competencies: jobComps,
+          id: job.id,
+          companyId: job.company_id,
+          title: job.title,
+          description: job.description,
+          level: job.level,
+          salaryMin: job.salary_min,
+          salaryMax: job.salary_max,
+          location: job.location,
+          status: job.status,
+          competencies,
+          createdAt: job.created_at,
+          updatedAt: job.updated_at,
         }
       })
     )
@@ -69,10 +86,13 @@ export async function GET(request: NextRequest) {
       { message: 'Erro ao buscar vagas' },
       { status: 500 }
     )
+  } finally {
+    if (connection) await connection.end()
   }
 }
 
 export async function POST(request: NextRequest) {
+  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -104,37 +124,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Criar a vaga
-    const insertResult = await db.insert(jobPostings).values({
-      companyId: Number(companyId),
-      title,
-      description,
-      level: (level || 'PLENO') as 'JUNIOR' | 'PLENO' | 'SENIOR',
-      salaryMin: salaryMin ? parseFloat(salaryMin) : null,
-      salaryMax: salaryMax ? parseFloat(salaryMax) : null,
-      location,
-      status: 'OPEN' as 'OPEN' | 'CLOSED',
-    })
+    connection = await getConnection()
 
-    // Buscar o ID da vaga inserida
-    const jobs = await db.query.jobPostings.findMany({
-      where: (table) => table.companyId.eq(Number(companyId)),
-      orderBy: (table) => [table.id],
-      limit: 1,
-    })
-    
-    const jobId = jobs[jobs.length - 1]?.id
+    // Criar a vaga
+    const [result] = await connection.execute(
+      `INSERT INTO job_postings (company_id, title, description, level, salary_min, salary_max, location, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
+      [
+        companyId,
+        title,
+        description,
+        level || 'PLENO',
+        salaryMin ? parseFloat(salaryMin) : null,
+        salaryMax ? parseFloat(salaryMax) : null,
+        location,
+      ]
+    ) as any
+
+    const jobId = result.insertId
 
     // Adicionar competências se fornecidas
     if (competenciesIds && Array.isArray(competenciesIds) && competenciesIds.length > 0) {
-      await Promise.all(
-        competenciesIds.map((competenciaId) =>
-          db.insert(jobCompetencies).values({
-            jobId: Number(jobId),
-            competenciaId,
-          })
+      for (const competenciaId of competenciesIds) {
+        await connection.execute(
+          'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
+          [jobId, competenciaId]
         )
-      )
+      }
     }
 
     return NextResponse.json(
@@ -147,5 +163,7 @@ export async function POST(request: NextRequest) {
       { message: 'Erro ao criar vaga' },
       { status: 500 }
     )
+  } finally {
+    if (connection) await connection.end()
   }
 }
