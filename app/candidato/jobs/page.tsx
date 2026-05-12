@@ -84,7 +84,8 @@ export default function CandidateJobsPage() {
     if (!min && !max) return 'Salário a combinar'
     if (min && !max) return `R$ ${min.toLocaleString('pt-BR')}`
     if (!min && max) return `até R$ ${max.toLocaleString('pt-BR')}`
-    return `R$ ${min.toLocaleString('pt-BR')} - R$ ${max.toLocaleString('pt-BR')}`
+    if (min && max) return `R$ ${min.toLocaleString('pt-BR')} - R$ ${max.toLocaleString('pt-BR')}`
+    return 'Salário a combinar'
   }
 
   const handleApply = (jobId: number) => {
