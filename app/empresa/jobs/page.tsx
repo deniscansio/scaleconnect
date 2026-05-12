@@ -47,7 +47,7 @@ export default function CompanyJobsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('scaleconnect_token')
         if (!token) {
           router.push('/login')
           return
@@ -101,7 +101,7 @@ export default function CompanyJobsPage() {
     }
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('scaleconnect_token')
       if (!token) {
         router.push('/login')
         return
@@ -153,7 +153,7 @@ export default function CompanyJobsPage() {
     if (!confirm('Tem certeza que deseja deletar esta vaga?')) return
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('scaleconnect_token')
       if (!token) {
         router.push('/login')
         return
@@ -179,7 +179,7 @@ export default function CompanyJobsPage() {
 
   const handleCloseJob = async (jobId: number) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('scaleconnect_token')
       if (!token) {
         router.push('/login')
         return
