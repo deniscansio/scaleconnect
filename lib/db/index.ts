@@ -35,14 +35,18 @@ function parseConnectionString(connectionString: string) {
 const connectionConfig = parseConnectionString(process.env.DATABASE_URL || '');
 
 const connection = mysql.createPool({
-  ...connectionConfig,
-  connectionLimit: 10, // IMPORTANTE: Limita conexões para não travar o banco
+  host: connectionConfig.host,
+  port: connectionConfig.port,
+  user: connectionConfig.user,
+  password: connectionConfig.password,
+  database: connectionConfig.database,
+  connectionLimit: 10,
   ssl: {
     rejectUnauthorized: true
   },
   waitForConnections: true,
   enableKeepAlive: true,
-  keepAliveInitialDelayMs: 0,
+  keepAliveInitialDelay: 0,
 });
 
 export const db = drizzle(connection, { schema, mode: 'default' });
