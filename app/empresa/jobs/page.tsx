@@ -48,6 +48,7 @@ export default function CompanyJobsPage() {
   const [formError, setFormError] = useState('')
   const [jobTitleSearch, setJobTitleSearch] = useState('')
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([])
+  const [totalCandidaturas, setTotalCandidaturas] = useState(0)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -371,7 +372,6 @@ export default function CompanyJobsPage() {
 
   const totalVagas = jobs.length
   const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
-  const [totalCandidaturas, setTotalCandidaturas] = useState(0)
 
   // Buscar total de candidaturas reais
   useEffect(() => {
