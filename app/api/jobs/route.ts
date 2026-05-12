@@ -128,8 +128,11 @@ export async function POST(request: NextRequest) {
 
     const { title, jobTitle, description, level, salaryMin, salaryMax, state, city, employmentType, workMode, competenciesIds, benefitsIds } = body
 
+    console.log('POST /api/jobs - Dados recebidos:', { title, jobTitle, state, city, employmentType, workMode, competenciesIds: competenciesIds?.length })
+
     // Validar campos obrigatórios
     if (!title || !jobTitle || !description || !state || !city || !employmentType || !workMode) {
+      console.log('Campos obrigatórios faltando:', { title, jobTitle, description, state, city, employmentType, workMode })
       return NextResponse.json(
         { message: 'Todos os campos obrigatórios devem ser preenchidos' },
         { status: 400 }
@@ -138,6 +141,7 @@ export async function POST(request: NextRequest) {
 
     // Validar mínimo de competências
     if (!competenciesIds || !Array.isArray(competenciesIds) || competenciesIds.length < 4) {
+      console.log('Competências inválidas:', competenciesIds)
       return NextResponse.json(
         { message: 'Mínimo de 4 competências é obrigatório' },
         { status: 400 }
@@ -148,6 +152,7 @@ export async function POST(request: NextRequest) {
 
     // Criar a vaga
     const location = `${city}, ${state}`
+    console.log('Criando vaga com location:', location)
     const [result] = await connection.execute(
       `INSERT INTO job_postings (company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
@@ -166,27 +171,39 @@ export async function POST(request: NextRequest) {
     ) as any
 
     const jobId = result.insertId
+    console.log('Vaga criada com ID:', jobId)
 
     // Adicionar competências se fornecidas
     if (competenciesIds && Array.isArray(competenciesIds) && competenciesIds.length > 0) {
+      console.log('Adicionando', competenciesIds.length, 'competências')
       for (const competenciaId of competenciesIds) {
-        await connection.execute(
-          'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
-          [jobId, competenciaId]
-        )
+        try {
+          await connection.execute(
+            'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
+            [jobId, competenciaId]
+          )
+        } catch (err: any) {
+          console.error('Erro ao adicionar competência:', competenciaId, err?.message)
+        }
       }
     }
 
     // Adicionar benefícios se fornecidos
     if (benefitsIds && Array.isArray(benefitsIds) && benefitsIds.length > 0) {
+      console.log('Adicionando', benefitsIds.length, 'benefícios')
       for (const benefitId of benefitsIds) {
-        await connection.execute(
-          'INSERT INTO job_benefits (job_id, benefit_id) VALUES (?, ?)',
-          [jobId, benefitId]
-        )
+        try {
+          await connection.execute(
+            'INSERT INTO job_benefits (job_id, benefit_id) VALUES (?, ?)',
+            [jobId, benefitId]
+          )
+        } catch (err: any) {
+          console.error('Erro ao adicionar benefício:', benefitId, err?.message)
+        }
       }
     }
 
+    console.log('Vaga criada com sucesso')
     return NextResponse.json(
       { message: 'Vaga criada com sucesso', jobId },
       { status: 201 }
