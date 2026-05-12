@@ -56,6 +56,10 @@ export default function CandidateProfilePage() {
           const mergedProfile = {
             ...profile,
             ...dbProfile,
+            state: dbProfile.state || '',
+            city: dbProfile.city || '',
+            educationLevel: dbProfile.educationLevel || '',
+            aboutMe: dbProfile.aboutMe || '',
             skills: typeof dbProfile.skills === 'string'
               ? JSON.parse(dbProfile.skills || '[]')
               : dbProfile.skills || [],
