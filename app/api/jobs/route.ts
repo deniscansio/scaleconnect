@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mysql from 'mysql2/promise'
-import { jwtVerify } from 'jose'
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'scaleconnect-super-secret-key-2026')
-
-async function verifyToken(token: string) {
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET)
-    return verified.payload
-  } catch (error) {
-    return null
-  }
-}
+import jwt from 'jsonwebtoken'
 
 async function getConnection() {
   return await mysql.createConnection({
@@ -20,6 +9,15 @@ async function getConnection() {
       rejectUnauthorized: true
     }
   })
+}
+
+function verifyToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'scaleconnect-secret-2026') as any
+    return decoded
+  } catch (error) {
+    return null
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -35,7 +33,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const payload = await verifyToken(token)
+    const payload = verifyToken(token)
     if (!payload || !payload.id) {
       return NextResponse.json(
         { message: 'Token inválido' },
@@ -46,14 +44,14 @@ export async function GET(request: NextRequest) {
     const companyId = payload.id as number
     connection = await getConnection()
 
-    // Buscar vagas
+    // Buscar vagas da empresa
     const [jobs] = await connection.execute(
       'SELECT id, company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
       [companyId]
     ) as any
 
     // Para cada vaga, buscar as competências e benefícios
-    const jobsWithCompetenciesAndBenefits = await Promise.all(
+    const jobsWithDetails = await Promise.all(
       jobs.map(async (job: any) => {
         const [competencies] = await connection.execute(
           `SELECT c.id, c.nome FROM competencies c
@@ -90,7 +88,7 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    return NextResponse.json(jobsWithCompetenciesAndBenefits)
+    return NextResponse.json(jobsWithDetails)
   } catch (error) {
     console.error('Erro ao buscar vagas:', error)
     return NextResponse.json(
@@ -115,8 +113,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const payload = await verifyToken(token)
+    const payload = verifyToken(token)
     if (!payload || !payload.id) {
+      console.error('Token inválido:', payload)
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
@@ -128,11 +127,11 @@ export async function POST(request: NextRequest) {
 
     const { title, jobTitle, description, level, salaryMin, salaryMax, state, city, employmentType, workMode, competenciesIds, benefitsIds } = body
 
-    console.log('POST /api/jobs - Dados recebidos:', { title, jobTitle, state, city, employmentType, workMode, competenciesIds: competenciesIds?.length })
+    console.log('POST /api/jobs - Dados recebidos:', { title, jobTitle, state, city, employmentType, workMode, competenciesIds: competenciesIds?.length, companyId })
 
     // Validar campos obrigatórios
     if (!title || !jobTitle || !description || !state || !city || !employmentType || !workMode) {
-      console.log('Campos obrigatórios faltando:', { title, jobTitle, description, state, city, employmentType, workMode })
+      console.log('Campos obrigatórios faltando')
       return NextResponse.json(
         { message: 'Todos os campos obrigatórios devem ser preenchidos' },
         { status: 400 }
@@ -141,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     // Validar mínimo de competências
     if (!competenciesIds || !Array.isArray(competenciesIds) || competenciesIds.length < 4) {
-      console.log('Competências inválidas:', competenciesIds)
+      console.log('Competências inválidas:', competenciesIds?.length)
       return NextResponse.json(
         { message: 'Mínimo de 4 competências é obrigatório' },
         { status: 400 }
@@ -152,7 +151,8 @@ export async function POST(request: NextRequest) {
 
     // Criar a vaga
     const location = `${city}, ${state}`
-    console.log('Criando vaga com location:', location)
+    console.log('Criando vaga com:', { companyId, title, location })
+    
     const [result] = await connection.execute(
       `INSERT INTO job_postings (company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
@@ -162,8 +162,8 @@ export async function POST(request: NextRequest) {
         jobTitle,
         description,
         level || 'PLENO',
-        salaryMin ? parseFloat(salaryMin) : null,
-        salaryMax ? parseFloat(salaryMax) : null,
+        salaryMin ? parseFloat(String(salaryMin)) : null,
+        salaryMax ? parseFloat(String(salaryMax)) : null,
         location,
         employmentType,
         workMode,
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
     const jobId = result.insertId
     console.log('Vaga criada com ID:', jobId)
 
-    // Adicionar competências se fornecidas
+    // Adicionar competências
     if (competenciesIds && Array.isArray(competenciesIds) && competenciesIds.length > 0) {
       console.log('Adicionando', competenciesIds.length, 'competências')
       for (const competenciaId of competenciesIds) {
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Adicionar benefícios se fornecidos
+    // Adicionar benefícios
     if (benefitsIds && Array.isArray(benefitsIds) && benefitsIds.length > 0) {
       console.log('Adicionando', benefitsIds.length, 'benefícios')
       for (const benefitId of benefitsIds) {
