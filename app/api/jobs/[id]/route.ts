@@ -102,17 +102,24 @@ export async function PUT(
     const { title, description, level, salaryMin, salaryMax, location, status, competenciesIds } = body
 
     // Atualizar vaga
+    const updateData: any = {
+      title: title || job.title,
+      description: description || job.description,
+      level: level || job.level,
+      location: location || job.location,
+      status: status || job.status,
+    }
+
+    if (salaryMin !== undefined) {
+      updateData.salaryMin = salaryMin ? parseFloat(salaryMin) : null
+    }
+    if (salaryMax !== undefined) {
+      updateData.salaryMax = salaryMax ? parseFloat(salaryMax) : null
+    }
+
     await db
       .update(jobPostings)
-      .set({
-        title: title || job.title,
-        description: description || job.description,
-        level: level || job.level,
-        salaryMin: salaryMin !== undefined ? parseFloat(salaryMin) : job.salaryMin,
-        salaryMax: salaryMax !== undefined ? parseFloat(salaryMax) : job.salaryMax,
-        location: location || job.location,
-        status: status || job.status,
-      })
+      .set(updateData)
       .where(eq(jobPostings.id, jobId))
 
     // Atualizar competências se fornecidas
