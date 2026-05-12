@@ -2,8 +2,9 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as userSchema from './schema/users';
 import * as competenciesSchema from './schema/competencies';
+import * as jobsSchema from './schema/jobs';
 
-const schema = { ...userSchema, ...competenciesSchema };
+const schema = { ...userSchema, ...competenciesSchema, ...jobsSchema };
 
 // Configuração de conexão com o banco de dados MySQL (TiDB Cloud)
 const connection = mysql.createPool({
