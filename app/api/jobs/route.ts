@@ -36,14 +36,14 @@ export async function GET(request: NextRequest) {
     }
 
     const payload = await verifyToken(token)
-    if (!payload || !payload.userId) {
+    if (!payload || !payload.id) {
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
       )
     }
 
-    const companyId = payload.userId as number
+    const companyId = payload.id as number
     connection = await getConnection()
 
     // Buscar vagas
@@ -116,14 +116,14 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await verifyToken(token)
-    if (!payload || !payload.userId) {
+    if (!payload || !payload.id) {
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
       )
     }
 
-    const companyId = payload.userId as number
+    const companyId = payload.id as number
     const body = await request.json()
 
     const { title, jobTitle, description, level, salaryMin, salaryMax, state, city, employmentType, workMode, competenciesIds, benefitsIds } = body

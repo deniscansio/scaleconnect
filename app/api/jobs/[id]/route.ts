@@ -107,14 +107,14 @@ export async function PUT(
     }
 
     const payload = await verifyToken(token)
-    if (!payload || !payload.userId) {
+    if (!payload || !payload.id) {
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
       )
     }
 
-    const companyId = payload.userId as number
+    const companyId = payload.id as number
     const jobId = parseInt(params.id)
     connection = await getConnection()
 
@@ -218,14 +218,14 @@ export async function DELETE(
     }
 
     const payload = await verifyToken(token)
-    if (!payload || !payload.userId) {
+    if (!payload || !payload.id) {
       return NextResponse.json(
         { message: 'Token inválido' },
         { status: 401 }
       )
     }
 
-    const companyId = payload.userId as number
+    const companyId = payload.id as number
     const jobId = parseInt(params.id)
     connection = await getConnection()
 
