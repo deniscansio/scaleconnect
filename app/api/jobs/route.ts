@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Buscar vagas
     const [jobs] = await connection.execute(
-      'SELECT id, company_id, title, description, level, salary_min, salary_max, location, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
+      'SELECT id, company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
       [companyId]
     ) as any
 
@@ -66,11 +66,14 @@ export async function GET(request: NextRequest) {
           id: job.id,
           companyId: job.company_id,
           title: job.title,
+          jobTitle: job.job_title,
           description: job.description,
           level: job.level,
           salaryMin: job.salary_min,
           salaryMax: job.salary_max,
           location: job.location,
+          employmentType: job.employment_type,
+          workMode: job.work_mode,
           status: job.status,
           competencies,
           createdAt: job.created_at,
@@ -115,11 +118,20 @@ export async function POST(request: NextRequest) {
     const companyId = payload.userId as number
     const body = await request.json()
 
-    const { title, description, level, salaryMin, salaryMax, location, competenciesIds } = body
+    const { title, jobTitle, description, level, salaryMin, salaryMax, location, employmentType, workMode, competenciesIds } = body
 
-    if (!title || !description || !location) {
+    // Validar campos obrigatórios
+    if (!title || !jobTitle || !description || !location || !employmentType || !workMode) {
       return NextResponse.json(
-        { message: 'Campos obrigatórios faltando' },
+        { message: 'Todos os campos obrigatórios devem ser preenchidos' },
+        { status: 400 }
+      )
+    }
+
+    // Validar mínimo de competências
+    if (!competenciesIds || !Array.isArray(competenciesIds) || competenciesIds.length < 4) {
+      return NextResponse.json(
+        { message: 'Mínimo de 4 competências é obrigatório' },
         { status: 400 }
       )
     }
@@ -128,16 +140,19 @@ export async function POST(request: NextRequest) {
 
     // Criar a vaga
     const [result] = await connection.execute(
-      `INSERT INTO job_postings (company_id, title, description, level, salary_min, salary_max, location, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
+      `INSERT INTO job_postings (company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
       [
         companyId,
         title,
+        jobTitle,
         description,
         level || 'PLENO',
         salaryMin ? parseFloat(salaryMin) : null,
         salaryMax ? parseFloat(salaryMax) : null,
         location,
+        employmentType,
+        workMode,
       ]
     ) as any
 

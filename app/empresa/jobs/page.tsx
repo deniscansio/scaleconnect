@@ -12,15 +12,23 @@ interface Competency {
 interface Job {
   id: number
   title: string
+  jobTitle: string
   description: string
   level: string
   salaryMin: number | null
   salaryMax: number | null
   location: string
+  employmentType: string
+  workMode: string
   status: string
   competencies: Competency[]
   createdAt: string
   updatedAt: string
+}
+
+interface JobTitle {
+  id: number
+  titulo: string
 }
 
 export default function CompanyJobsPage() {
@@ -28,22 +36,27 @@ export default function CompanyJobsPage() {
   const [showForm, setShowForm] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [allCompetencies, setAllCompetencies] = useState<Competency[]>([])
+  const [allJobTitles, setAllJobTitles] = useState<JobTitle[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCompetencies, setSelectedCompetencies] = useState<number[]>([])
   const [showCompetenciesModal, setShowCompetenciesModal] = useState(false)
+  const [formError, setFormError] = useState('')
 
   const [formData, setFormData] = useState({
     title: '',
+    jobTitle: '',
     level: 'PLENO',
     salaryMin: '',
     salaryMax: '',
     location: '',
     description: '',
+    employmentType: 'CLT',
+    workMode: 'PRESENCIAL',
   })
 
   const [selectedJob, setSelectedJob] = useState<number | null>(null)
 
-  // Buscar vagas e competências ao carregar a página
+  // Buscar vagas, competências e cargos ao carregar a página
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,6 +84,13 @@ export default function CompanyJobsPage() {
           const competenciesData = await competenciesResponse.json()
           setAllCompetencies(competenciesData)
         }
+
+        // Buscar cargos (job titles) do perfil de candidatos
+        const jobTitlesResponse = await fetch('/api/job-titles')
+        if (jobTitlesResponse.ok) {
+          const jobTitlesData = await jobTitlesResponse.json()
+          setAllJobTitles(jobTitlesData)
+        }
       } catch (error) {
         console.error('Erro ao buscar dados:', error)
       } finally {
@@ -81,22 +101,19 @@ export default function CompanyJobsPage() {
     fetchData()
   }, [router])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  const handleSubmitJob = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError('')
 
-  const handleCompetencyToggle = (competencyId: number) => {
-    setSelectedCompetencies(prev =>
-      prev.includes(competencyId)
-        ? prev.filter(id => id !== competencyId)
-        : [...prev, competencyId]
-    )
-  }
+    // Validar campos obrigatórios
+    if (!formData.title || !formData.jobTitle || !formData.description || !formData.location || !formData.employmentType || !formData.workMode) {
+      setFormError('Todos os campos obrigatórios devem ser preenchidos')
+      return
+    }
 
-  const handleAddJob = async () => {
-    if (!formData.title || !formData.location) {
-      alert('Preencha os campos obrigatórios')
+    // Validar mínimo de competências
+    if (selectedCompetencies.length < 4) {
+      setFormError('Mínimo de 4 competências é obrigatório')
       return
     }
 
@@ -114,17 +131,27 @@ export default function CompanyJobsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          level: formData.level,
-          salaryMin: formData.salaryMin,
-          salaryMax: formData.salaryMax,
-          location: formData.location,
+          ...formData,
           competenciesIds: selectedCompetencies,
         }),
       })
 
       if (response.ok) {
+        // Limpar formulário
+        setFormData({
+          title: '',
+          jobTitle: '',
+          level: 'PLENO',
+          salaryMin: '',
+          salaryMax: '',
+          location: '',
+          description: '',
+          employmentType: 'CLT',
+          workMode: 'PRESENCIAL',
+        })
+        setSelectedCompetencies([])
+        setShowForm(false)
+
         // Recarregar vagas
         const jobsResponse = await fetch('/api/jobs', {
           headers: {
@@ -135,17 +162,12 @@ export default function CompanyJobsPage() {
           const jobsData = await jobsResponse.json()
           setJobs(jobsData)
         }
-
-        // Limpar formulário
-        setFormData({ title: '', level: 'PLENO', salaryMin: '', salaryMax: '', location: '', description: '' })
-        setSelectedCompetencies([])
-        setShowForm(false)
       } else {
-        alert('Erro ao criar vaga')
+        const error = await response.json()
+        setFormError(error.message || 'Erro ao criar vaga')
       }
     } catch (error) {
-      console.error('Erro ao criar vaga:', error)
-      alert('Erro ao criar vaga')
+      setFormError('Erro ao conectar ao servidor')
     }
   }
 
@@ -167,12 +189,11 @@ export default function CompanyJobsPage() {
       })
 
       if (response.ok) {
-        setJobs(jobs.filter(job => job.id !== jobId))
+        setJobs(jobs.filter(j => j.id !== jobId))
       } else {
         alert('Erro ao deletar vaga')
       }
     } catch (error) {
-      console.error('Erro ao deletar vaga:', error)
       alert('Erro ao deletar vaga')
     }
   }
@@ -195,383 +216,368 @@ export default function CompanyJobsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          status: 'CLOSED',
+          status: job.status === 'OPEN' ? 'CLOSED' : 'OPEN',
         }),
       })
 
       if (response.ok) {
-        setJobs(jobs.map(j => j.id === jobId ? { ...j, status: 'CLOSED' } : j))
-      } else {
-        alert('Erro ao fechar vaga')
+        setJobs(jobs.map(j => j.id === jobId ? { ...j, status: job.status === 'OPEN' ? 'CLOSED' : 'OPEN' } : j))
       }
     } catch (error) {
-      console.error('Erro ao fechar vaga:', error)
-      alert('Erro ao fechar vaga')
+      alert('Erro ao atualizar vaga')
     }
   }
 
-  const handleCancelForm = () => {
-    setFormData({ title: '', level: 'PLENO', salaryMin: '', salaryMax: '', location: '', description: '' })
-    setSelectedCompetencies([])
-    setShowForm(false)
-  }
-
-  const formatSalary = (min: number | null, max: number | null) => {
-    if (!min && !max) return 'A combinar'
-    const minStr = min ? `R$ ${min.toLocaleString('pt-BR')}` : ''
-    const maxStr = max ? `R$ ${max.toLocaleString('pt-BR')}` : ''
-    return `${minStr} - ${maxStr}`.trim().replace(' - ', '')
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-company-light to-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-gray-600">Carregando vagas...</p>
-        </div>
-      </main>
+  const toggleCompetency = (competencyId: number) => {
+    setSelectedCompetencies(prev =>
+      prev.includes(competencyId)
+        ? prev.filter(id => id !== competencyId)
+        : [...prev, competencyId]
     )
   }
 
+  const openCompetenciesModal = () => {
+    setShowCompetenciesModal(true)
+  }
+
+  const closeCompetenciesModal = () => {
+    setShowCompetenciesModal(false)
+  }
+
+  if (loading) {
+    return <div className="p-8">Carregando...</div>
+  }
+
+  const totalVagas = jobs.length
+  const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-company-light to-slate-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b-4 border-company-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-company-primary">ScaleConnect</div>
-          <Link href="/empresa/dashboard" className="text-company-primary font-semibold hover:underline">
-            ← Voltar ao Dashboard
-          </Link>
+    <main className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto p-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">📋 Gerenciar Vagas</h1>
+            <p className="text-gray-600">Publique e gerencie as vagas da sua empresa</p>
+          </div>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg"
+          >
+            + Publicar Vaga
+          </button>
         </div>
-      </nav>
 
-      {/* Sidebar + Content */}
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-md min-h-screen p-6">
-          <nav className="space-y-4">
-            <Link href="/empresa/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📊 Dashboard
-            </Link>
-            <Link href="/empresa/jobs" className="block px-4 py-2 bg-company-primary text-white rounded-lg font-semibold">
-              📋 Vagas
-            </Link>
-            <Link href="/empresa/opportunities" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              💼 Geração de Demanda
-            </Link>
-            <Link href="/empresa/leads" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📞 CRM de Leads
-            </Link>
-            <Link href="/empresa/metrics" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              📈 Métricas
-            </Link>
-            <Link href="/empresa/billing" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              💳 Faturamento
-            </Link>
-            <Link href="/empresa/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              ⚙️ Perfil da Empresa
-            </Link>
-          </nav>
-        </aside>
+        {/* Cards de resumo */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-gray-600 text-sm">📋 Total de Vagas</div>
+            <div className="text-3xl font-bold text-gray-900">{totalVagas}</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-gray-600 text-sm">✅ Vagas Abertas</div>
+            <div className="text-3xl font-bold text-green-600">{vagasAbertas}</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-gray-600 text-sm">📨 Total de Candidaturas</div>
+            <div className="text-3xl font-bold text-blue-600">{jobs.reduce((sum, j) => sum + (j.competencies?.length || 0), 0)}</div>
+          </div>
+        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="mb-8 flex justify-between items-center">
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">📋 Gerenciar Vagas</h1>
-                <p className="text-gray-600">Publique e gerencie as vagas da sua empresa</p>
+        {/* Formulário de criação de vaga */}
+        {showForm && (
+          <div className="bg-white p-8 rounded-lg shadow mb-8">
+            <h2 className="text-2xl font-bold mb-6">Criar Nova Vaga</h2>
+
+            {formError && (
+              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {formError}
               </div>
-              <button
-                onClick={() => setShowForm(!showForm)}
-                className={`px-6 py-3 rounded-lg font-semibold transition ${
-                  showForm
-                    ? 'bg-gray-500 text-white hover:bg-gray-600'
-                    : 'bg-company-primary text-white hover:bg-opacity-90'
-                }`}
-              >
-                {showForm ? '✕ Cancelar' : '+ Publicar Vaga'}
-              </button>
-            </div>
+            )}
 
-            {/* Stats */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">📋 Total de Vagas</p>
-                <p className="text-3xl font-bold text-company-primary">{jobs.length}</p>
-              </div>
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">✅ Vagas Abertas</p>
-                <p className="text-3xl font-bold text-green-600">{jobs.filter(j => j.status === 'OPEN').length}</p>
-              </div>
-              <div className="card bg-white">
-                <p className="text-gray-600 mb-2">📨 Total de Candidaturas</p>
-                <p className="text-3xl font-bold text-blue-600">0</p>
-              </div>
-            </div>
+            <form onSubmit={handleSubmitJob} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Título da Vaga */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Título da Vaga *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: Gerente de Projetos"
+                    required
+                  />
+                </div>
 
-            {/* Form */}
-            {showForm && (
-              <div className="card bg-white mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Publicar Nova Vaga</h2>
-                
-                <div className="space-y-6">
-                  {/* Row 1 */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">Título da Vaga *</label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        placeholder="Ex: Gerente de Vendas"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">Nível</label>
-                      <select
-                        name="level"
-                        value={formData.level}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                      >
-                        <option value="JUNIOR">Júnior</option>
-                        <option value="PLENO">Pleno</option>
-                        <option value="SENIOR">Sênior</option>
-                      </select>
-                    </div>
-                  </div>
+                {/* Cargo (Job Title) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cargo *
+                  </label>
+                  <select
+                    value={formData.jobTitle}
+                    onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Selecione um cargo</option>
+                    {allJobTitles.map(jt => (
+                      <option key={jt.id} value={jt.titulo}>
+                        {jt.titulo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {/* Row 2 */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">Salário Mínimo</label>
-                      <input
-                        type="number"
-                        name="salaryMin"
-                        value={formData.salaryMin}
-                        onChange={handleInputChange}
-                        placeholder="Ex: 3000"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">Salário Máximo</label>
-                      <input
-                        type="number"
-                        name="salaryMax"
-                        value={formData.salaryMax}
-                        onChange={handleInputChange}
-                        placeholder="Ex: 5000"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                      />
-                    </div>
-                  </div>
+                {/* Nível */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nível *
+                  </label>
+                  <select
+                    value={formData.level}
+                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="JUNIOR">Júnior</option>
+                    <option value="PLENO">Pleno</option>
+                    <option value="SENIOR">Sênior</option>
+                  </select>
+                </div>
 
-                  {/* Row 3 */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Localização *</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      placeholder="Ex: São Paulo, SP ou Remoto"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                    />
-                  </div>
+                {/* Tipo de Vínculo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo de Vínculo *
+                  </label>
+                  <select
+                    value={formData.employmentType}
+                    onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="CLT">CLT</option>
+                    <option value="PJ">PJ</option>
+                    <option value="AUTONOMO">Autônomo</option>
+                  </select>
+                </div>
 
-                  {/* Row 4 */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Descrição da Vaga</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Descreva as responsabilidades e desafios da vaga"
-                      rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-company-primary"
-                    />
-                  </div>
+                {/* Modalidade */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Modalidade *
+                  </label>
+                  <select
+                    value={formData.workMode}
+                    onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="PRESENCIAL">Presencial</option>
+                    <option value="HIBRIDA">Híbrida</option>
+                    <option value="REMOTO">Remoto</option>
+                  </select>
+                </div>
 
-                  {/* Row 5 - Competências */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Competências Desejadas</label>
-                    <button
-                      type="button"
-                      onClick={() => setShowCompetenciesModal(!showCompetenciesModal)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-left hover:bg-gray-50 transition"
-                    >
-                      {selectedCompetencies.length > 0
-                        ? `${selectedCompetencies.length} competência(s) selecionada(s)`
-                        : 'Clique para selecionar competências'}
-                    </button>
+                {/* Localização */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Localização *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: São Paulo, SP"
+                    required
+                  />
+                </div>
 
-                    {showCompetenciesModal && (
-                      <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50 max-h-60 overflow-y-auto">
-                        <div className="grid grid-cols-2 gap-3">
-                          {allCompetencies.map((comp) => (
-                            <label key={comp.id} className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={selectedCompetencies.includes(comp.id)}
-                                onChange={() => handleCompetencyToggle(comp.id)}
-                                className="w-4 h-4 rounded"
-                              />
-                              <span className="text-sm text-gray-700">{comp.nome}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* Salário Mínimo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Salário Mínimo
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.salaryMin}
+                    onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: 3000"
+                  />
+                </div>
 
-                    {selectedCompetencies.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {selectedCompetencies.map((compId) => {
-                          const comp = allCompetencies.find(c => c.id === compId)
-                          return (
-                            <span key={compId} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                              {comp?.nome}
-                            </span>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex gap-4 pt-6 border-t">
-                    <button
-                      onClick={handleAddJob}
-                      className="flex-1 px-6 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
-                    >
-                      ✓ Publicar Vaga
-                    </button>
-                    <button
-                      onClick={handleCancelForm}
-                      className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
-                    >
-                      ✕ Cancelar
-                    </button>
-                  </div>
+                {/* Salário Máximo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Salário Máximo
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.salaryMax}
+                    onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: 5000"
+                  />
                 </div>
               </div>
-            )}
 
-            {/* Jobs List */}
-            {jobs.length === 0 ? (
-              <div className="card bg-white text-center py-12">
-                <p className="text-xl text-gray-600 mb-4">Nenhuma vaga publicada ainda</p>
+              {/* Descrição */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Descrição da Vaga *
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Descreva a vaga, responsabilidades e requisitos"
+                  rows={5}
+                  required
+                />
+              </div>
+
+              {/* Competências */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Competências Necessárias * (Mínimo 4)
+                </label>
                 <button
-                  onClick={() => setShowForm(true)}
-                  className="px-6 py-3 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
+                  type="button"
+                  onClick={openCompetenciesModal}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50"
                 >
-                  + Publicar Primeira Vaga
+                  {selectedCompetencies.length > 0
+                    ? `${selectedCompetencies.length} competência(s) selecionada(s)`
+                    : 'Selecione as competências'}
+                </button>
+
+                {/* Modal de Competências */}
+                {showCompetenciesModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
+                      <h3 className="text-lg font-bold mb-4">Selecione as Competências</h3>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {allCompetencies.map(comp => (
+                          <label key={comp.id} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedCompetencies.includes(comp.id)}
+                              onChange={() => toggleCompetency(comp.id)}
+                              className="mr-2"
+                            />
+                            {comp.nome}
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={closeCompetenciesModal}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg"
+                >
+                  Publicar Vaga
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
+                >
+                  Cancelar
                 </button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="card bg-white border-l-4 border-company-secondary hover:shadow-lg transition"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-2xl font-bold text-gray-900">{job.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            job.status === 'OPEN'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {job.status === 'OPEN' ? 'Aberta' : 'Fechada'}
-                          </span>
-                        </div>
-                        <p className="text-gray-600 mb-3">{job.description}</p>
-                        
-                        <div className="grid md:grid-cols-4 gap-4 mb-4">
-                          <div>
-                            <p className="text-xs text-gray-600">Nível</p>
-                            <p className="font-semibold text-gray-900">{job.level}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600">Salário</p>
-                            <p className="font-semibold text-gray-900">{formatSalary(job.salaryMin, job.salaryMax)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600">Localização</p>
-                            <p className="font-semibold text-gray-900">{job.location}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-600">Publicada em</p>
-                            <p className="font-semibold text-gray-900">{new Date(job.createdAt).toLocaleDateString('pt-BR')}</p>
-                          </div>
-                        </div>
-
-                        {/* Competências */}
-                        {job.competencies.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-xs text-gray-600 mb-2">Competências Desejadas:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {job.competencies.map((comp) => (
-                                <span key={comp.id} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                                  {comp.nome}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-3 pt-4 border-t">
-                      <button
-                        onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-                        className="flex-1 px-4 py-2 bg-company-primary text-white rounded-lg font-semibold hover:bg-opacity-90 transition"
-                      >
-                        👁️ Ver Detalhes
-                      </button>
-                      <button
-                        onClick={() => handleCloseJob(job.id)}
-                        disabled={job.status === 'CLOSED'}
-                        className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        🔒 Fechar Vaga
-                      </button>
-                      <button
-                        onClick={() => handleDeleteJob(job.id)}
-                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
-                      >
-                        🗑️ Deletar
-                      </button>
-                    </div>
-
-                    {/* Expandable Details */}
-                    {selectedJob === job.id && (
-                      <div className="mt-4 pt-4 border-t">
-                        <h4 className="font-semibold text-gray-900 mb-3">📊 Detalhes da Vaga</h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="p-3 bg-blue-50 rounded-lg">
-                            <p className="text-xs text-gray-600">ID da Vaga</p>
-                            <p className="text-sm font-semibold text-gray-900">#{job.id}</p>
-                          </div>
-                          <div className="p-3 bg-green-50 rounded-lg">
-                            <p className="text-xs text-gray-600">Status</p>
-                            <p className="text-sm font-semibold text-gray-900">{job.status}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            </form>
           </div>
+        )}
+
+        {/* Lista de vagas */}
+        <div className="space-y-6">
+          {jobs.length === 0 ? (
+            <div className="bg-white p-8 rounded-lg shadow text-center">
+              <p className="text-gray-600">Nenhuma vaga cadastrada ainda. Clique em "+ Publicar Vaga" para começar!</p>
+            </div>
+          ) : (
+            jobs.map(job => (
+              <div key={job.id} className="bg-white p-6 rounded-lg shadow">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                    <p className="text-gray-600">{job.description}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {job.status === 'OPEN' ? 'Aberta' : 'Fechada'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div>
+                    <span className="font-semibold">Nível:</span> {job.level}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Cargo:</span> {job.jobTitle}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Vínculo:</span> {job.employmentType}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Modalidade:</span> {job.workMode}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Localização:</span> {job.location}
+                  </div>
+                  {job.salaryMin && job.salaryMax && (
+                    <div>
+                      <span className="font-semibold">Salário:</span> R$ {job.salaryMin.toLocaleString()} - R$ {job.salaryMax.toLocaleString()}
+                    </div>
+                  )}
+                </div>
+
+                {job.competencies && job.competencies.length > 0 && (
+                  <div className="mb-4">
+                    <span className="font-semibold text-sm">Competências:</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {job.competencies.map(comp => (
+                        <span key={comp.id} className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                          {comp.nome}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleCloseJob(job.id)}
+                    className={`flex-1 font-bold py-2 px-4 rounded-lg text-white ${job.status === 'OPEN' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
+                  >
+                    {job.status === 'OPEN' ? '🔒 Fechar Vaga' : '✅ Reabrir Vaga'}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJob(job.id)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg"
+                  >
+                    🗑️ Deletar
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </main>
