@@ -105,18 +105,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar a vaga
-    const result = await db.insert(jobPostings).values({
-      companyId,
+    const insertResult = await db.insert(jobPostings).values({
+      companyId: Number(companyId),
       title,
       description,
-      level: level || 'PLENO',
+      level: (level || 'PLENO') as 'JUNIOR' | 'PLENO' | 'SENIOR',
       salaryMin: salaryMin ? parseFloat(salaryMin) : null,
       salaryMax: salaryMax ? parseFloat(salaryMax) : null,
       location,
-      status: 'OPEN',
+      status: 'OPEN' as 'OPEN' | 'CLOSED',
     })
 
-    const jobId = result.insertId
+    // Buscar o ID da vaga inserida
+    const jobs = await db.query.jobPostings.findMany({
+      where: (table) => table.companyId.eq(Number(companyId)),
+      orderBy: (table) => [table.id],
+      limit: 1,
+    })
+    
+    const jobId = jobs[jobs.length - 1]?.id
 
     // Adicionar competências se fornecidas
     if (competenciesIds && Array.isArray(competenciesIds) && competenciesIds.length > 0) {
