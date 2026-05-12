@@ -3,10 +3,17 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { careerPositions } from '@/app/data/career-positions'
 
 interface Competency {
   id: number
   nome: string
+}
+
+interface Benefit {
+  id: number
+  nome: string
+  icone: string
 }
 
 interface Job {
@@ -22,13 +29,9 @@ interface Job {
   workMode: string
   status: string
   competencies: Competency[]
+  benefits: Benefit[]
   createdAt: string
   updatedAt: string
-}
-
-interface JobTitle {
-  id: number
-  titulo: string
 }
 
 export default function CompanyJobsPage() {
@@ -36,11 +39,15 @@ export default function CompanyJobsPage() {
   const [showForm, setShowForm] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [allCompetencies, setAllCompetencies] = useState<Competency[]>([])
-  const [allJobTitles, setAllJobTitles] = useState<JobTitle[]>([])
+  const [allBenefits, setAllBenefits] = useState<Benefit[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCompetencies, setSelectedCompetencies] = useState<number[]>([])
+  const [selectedBenefits, setSelectedBenefits] = useState<number[]>([])
   const [showCompetenciesModal, setShowCompetenciesModal] = useState(false)
+  const [showBenefitsModal, setShowBenefitsModal] = useState(false)
   const [formError, setFormError] = useState('')
+  const [jobTitleSearch, setJobTitleSearch] = useState('')
+  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
     title: '',
@@ -56,7 +63,7 @@ export default function CompanyJobsPage() {
 
   const [selectedJob, setSelectedJob] = useState<number | null>(null)
 
-  // Buscar vagas, competências e cargos ao carregar a página
+  // Buscar vagas, competências e benefícios ao carregar a página
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -85,11 +92,11 @@ export default function CompanyJobsPage() {
           setAllCompetencies(competenciesData)
         }
 
-        // Buscar cargos (job titles) do perfil de candidatos
-        const jobTitlesResponse = await fetch('/api/job-titles')
-        if (jobTitlesResponse.ok) {
-          const jobTitlesData = await jobTitlesResponse.json()
-          setAllJobTitles(jobTitlesData)
+        // Buscar benefícios
+        const benefitsResponse = await fetch('/api/benefits')
+        if (benefitsResponse.ok) {
+          const benefitsData = await benefitsResponse.json()
+          setAllBenefits(benefitsData)
         }
       } catch (error) {
         console.error('Erro ao buscar dados:', error)
@@ -100,6 +107,18 @@ export default function CompanyJobsPage() {
 
     fetchData()
   }, [router])
+
+  // Atualizar sugestões de cargo
+  useEffect(() => {
+    if (jobTitleSearch.trim()) {
+      const filtered = careerPositions
+        .map(p => p.title)
+        .filter(title => title.toLowerCase().includes(jobTitleSearch.toLowerCase()))
+      setJobTitleSuggestions(filtered)
+    } else {
+      setJobTitleSuggestions([])
+    }
+  }, [jobTitleSearch])
 
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,6 +152,7 @@ export default function CompanyJobsPage() {
         body: JSON.stringify({
           ...formData,
           competenciesIds: selectedCompetencies,
+          benefitsIds: selectedBenefits,
         }),
       })
 
@@ -149,7 +169,9 @@ export default function CompanyJobsPage() {
           employmentType: 'CLT',
           workMode: 'PRESENCIAL',
         })
+        setJobTitleSearch('')
         setSelectedCompetencies([])
+        setSelectedBenefits([])
         setShowForm(false)
 
         // Recarregar vagas
@@ -236,6 +258,14 @@ export default function CompanyJobsPage() {
     )
   }
 
+  const toggleBenefit = (benefitId: number) => {
+    setSelectedBenefits(prev =>
+      prev.includes(benefitId)
+        ? prev.filter(id => id !== benefitId)
+        : [...prev, benefitId]
+    )
+  }
+
   const openCompetenciesModal = () => {
     setShowCompetenciesModal(true)
   }
@@ -244,12 +274,21 @@ export default function CompanyJobsPage() {
     setShowCompetenciesModal(false)
   }
 
+  const openBenefitsModal = () => {
+    setShowBenefitsModal(true)
+  }
+
+  const closeBenefitsModal = () => {
+    setShowBenefitsModal(false)
+  }
+
   if (loading) {
     return <div className="p-8">Carregando...</div>
   }
 
   const totalVagas = jobs.length
   const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
+  const totalCandidaturas = jobs.reduce((sum, j) => sum + (j.competencies?.length || 0), 0)
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -279,7 +318,7 @@ export default function CompanyJobsPage() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="text-gray-600 text-sm">📨 Total de Candidaturas</div>
-            <div className="text-3xl font-bold text-blue-600">{jobs.reduce((sum, j) => sum + (j.competencies?.length || 0), 0)}</div>
+            <div className="text-3xl font-bold text-blue-600">{totalCandidaturas}</div>
           </div>
         </div>
 
@@ -311,24 +350,43 @@ export default function CompanyJobsPage() {
                   />
                 </div>
 
-                {/* Cargo (Job Title) */}
+                {/* Cargo (Job Title) com Autocomplete */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cargo *
                   </label>
-                  <select
-                    value={formData.jobTitle}
-                    onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Selecione um cargo</option>
-                    {allJobTitles.map(jt => (
-                      <option key={jt.id} value={jt.titulo}>
-                        {jt.titulo}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={jobTitleSearch || formData.jobTitle}
+                      onChange={(e) => {
+                        setJobTitleSearch(e.target.value)
+                        setFormData({ ...formData, jobTitle: e.target.value })
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Digite ou selecione um cargo"
+                      required
+                      autoComplete="off"
+                    />
+                    {jobTitleSuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {jobTitleSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, jobTitle: suggestion })
+                              setJobTitleSearch(suggestion)
+                              setJobTitleSuggestions([])
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Nível */}
@@ -486,6 +544,51 @@ export default function CompanyJobsPage() {
                 )}
               </div>
 
+              {/* Benefícios */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Benefícios Oferecidos
+                </label>
+                <button
+                  type="button"
+                  onClick={openBenefitsModal}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50"
+                >
+                  {selectedBenefits.length > 0
+                    ? `${selectedBenefits.length} benefício(s) selecionado(s)`
+                    : 'Selecione os benefícios'}
+                </button>
+
+                {/* Modal de Benefícios */}
+                {showBenefitsModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
+                      <h3 className="text-lg font-bold mb-4">Selecione os Benefícios</h3>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {allBenefits.map(benefit => (
+                          <label key={benefit.id} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedBenefits.includes(benefit.id)}
+                              onChange={() => toggleBenefit(benefit.id)}
+                              className="mr-2"
+                            />
+                            <span>{benefit.icone} {benefit.nome}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={closeBenefitsModal}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Botões */}
               <div className="flex gap-4">
                 <button
@@ -516,21 +619,20 @@ export default function CompanyJobsPage() {
             jobs.map(job => (
               <div key={job.id} className="bg-white p-6 rounded-lg shadow">
                 <div className="flex justify-between items-start mb-4">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
-                    <p className="text-gray-600">{job.description}</p>
+                    <p className="text-sm text-gray-500">{job.jobTitle}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {job.status === 'OPEN' ? 'Aberta' : 'Fechada'}
                   </span>
                 </div>
 
+                <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
+
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                   <div>
                     <span className="font-semibold">Nível:</span> {job.level}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Cargo:</span> {job.jobTitle}
                   </div>
                   <div>
                     <span className="font-semibold">Vínculo:</span> {job.employmentType}
@@ -555,6 +657,19 @@ export default function CompanyJobsPage() {
                       {job.competencies.map(comp => (
                         <span key={comp.id} className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
                           {comp.nome}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {job.benefits && job.benefits.length > 0 && (
+                  <div className="mb-4">
+                    <span className="font-semibold text-sm">Benefícios:</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {job.benefits.map(benefit => (
+                        <span key={benefit.id} className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">
+                          {benefit.icone} {benefit.nome}
                         </span>
                       ))}
                     </div>

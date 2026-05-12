@@ -32,7 +32,7 @@ export async function GET(
     connection = await getConnection()
 
     const [jobs] = await connection.execute(
-      'SELECT id, company_id, title, description, level, salary_min, salary_max, location, status, created_at, updated_at FROM job_postings WHERE id = ?',
+      'SELECT id, company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status, created_at, updated_at FROM job_postings WHERE id = ?',
       [jobId]
     ) as any
 
@@ -53,17 +53,29 @@ export async function GET(
       [jobId]
     ) as any
 
+    // Buscar benefícios da vaga
+    const [benefits] = await connection.execute(
+      `SELECT b.id, b.nome, b.icone FROM benefits b
+       INNER JOIN job_benefits jb ON b.id = jb.benefit_id
+       WHERE jb.job_id = ?`,
+      [jobId]
+    ) as any
+
     return NextResponse.json({
       id: job.id,
       companyId: job.company_id,
       title: job.title,
+      jobTitle: job.job_title,
       description: job.description,
       level: job.level,
       salaryMin: job.salary_min,
       salaryMax: job.salary_max,
       location: job.location,
+      employmentType: job.employment_type,
+      workMode: job.work_mode,
       status: job.status,
       competencies,
+      benefits,
       createdAt: job.created_at,
       updatedAt: job.updated_at,
     })
@@ -120,7 +132,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { title, description, level, salaryMin, salaryMax, location, status, competenciesIds } = body
+    const { title, description, level, salaryMin, salaryMax, location, status, competenciesIds, benefitsIds } = body
 
     // Atualizar vaga
     await connection.execute(
@@ -156,6 +168,22 @@ export async function PUT(
           await connection.execute(
             'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
             [jobId, competenciaId]
+          )
+        }
+      }
+    }
+
+    // Atualizar benefícios se fornecidos
+    if (benefitsIds && Array.isArray(benefitsIds)) {
+      // Remover benefícios antigos
+      await connection.execute('DELETE FROM job_benefits WHERE job_id = ?', [jobId])
+
+      // Adicionar novos benefícios
+      if (benefitsIds.length > 0) {
+        for (const benefitId of benefitsIds) {
+          await connection.execute(
+            'INSERT INTO job_benefits (job_id, benefit_id) VALUES (?, ?)',
+            [jobId, benefitId]
           )
         }
       }

@@ -52,13 +52,20 @@ export async function GET(request: NextRequest) {
       [companyId]
     ) as any
 
-    // Para cada vaga, buscar as competências
-    const jobsWithCompetencies = await Promise.all(
+    // Para cada vaga, buscar as competências e benefícios
+    const jobsWithCompetenciesAndBenefits = await Promise.all(
       jobs.map(async (job: any) => {
         const [competencies] = await connection.execute(
           `SELECT c.id, c.nome FROM competencies c
            INNER JOIN job_competencies jc ON c.id = jc.competencia_id
            WHERE jc.job_id = ?`,
+          [job.id]
+        ) as any
+
+        const [benefits] = await connection.execute(
+          `SELECT b.id, b.nome, b.icone FROM benefits b
+           INNER JOIN job_benefits jb ON b.id = jb.benefit_id
+           WHERE jb.job_id = ?`,
           [job.id]
         ) as any
 
@@ -76,13 +83,14 @@ export async function GET(request: NextRequest) {
           workMode: job.work_mode,
           status: job.status,
           competencies,
+          benefits,
           createdAt: job.created_at,
           updatedAt: job.updated_at,
         }
       })
     )
 
-    return NextResponse.json(jobsWithCompetencies)
+    return NextResponse.json(jobsWithCompetenciesAndBenefits)
   } catch (error) {
     console.error('Erro ao buscar vagas:', error)
     return NextResponse.json(
@@ -118,7 +126,7 @@ export async function POST(request: NextRequest) {
     const companyId = payload.userId as number
     const body = await request.json()
 
-    const { title, jobTitle, description, level, salaryMin, salaryMax, location, employmentType, workMode, competenciesIds } = body
+    const { title, jobTitle, description, level, salaryMin, salaryMax, location, employmentType, workMode, competenciesIds, benefitsIds } = body
 
     // Validar campos obrigatórios
     if (!title || !jobTitle || !description || !location || !employmentType || !workMode) {
@@ -164,6 +172,16 @@ export async function POST(request: NextRequest) {
         await connection.execute(
           'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
           [jobId, competenciaId]
+        )
+      }
+    }
+
+    // Adicionar benefícios se fornecidos
+    if (benefitsIds && Array.isArray(benefitsIds) && benefitsIds.length > 0) {
+      for (const benefitId of benefitsIds) {
+        await connection.execute(
+          'INSERT INTO job_benefits (job_id, benefit_id) VALUES (?, ?)',
+          [jobId, benefitId]
         )
       }
     }
