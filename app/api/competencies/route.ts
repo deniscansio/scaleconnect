@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { competencies } from '@/lib/db/schema/competencies'
 import { ilike } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
