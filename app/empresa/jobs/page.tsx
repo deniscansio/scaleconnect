@@ -371,7 +371,32 @@ export default function CompanyJobsPage() {
 
   const totalVagas = jobs.length
   const vagasAbertas = jobs.filter(j => j.status === 'OPEN').length
-  const totalCandidaturas = jobs.reduce((sum, j) => sum + (j.competencies?.length || 0), 0)
+  const [totalCandidaturas, setTotalCandidaturas] = useState(0)
+
+  // Buscar total de candidaturas reais
+  useEffect(() => {
+    const fetchApplicationsCount = async () => {
+      try {
+        const token = localStorage.getItem('scaleconnect_token')
+        if (!token) return
+
+        const response = await fetch('/api/company/applications-count', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setTotalCandidaturas(data.totalApplications || 0)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar candidaturas:', error)
+      }
+    }
+
+    fetchApplicationsCount()
+  }, [jobs])
+
+  const displayTotalCandidaturas = totalCandidaturas
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -401,7 +426,7 @@ export default function CompanyJobsPage() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="text-gray-600 text-sm">📨 Total de Candidaturas</div>
-            <div className="text-3xl font-bold text-blue-600">{totalCandidaturas}</div>
+            <div className="text-3xl font-bold text-blue-600">{displayTotalCandidaturas}</div>
           </div>
         </div>
 
