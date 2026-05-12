@@ -1,16 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import mysql from 'mysql2/promise'
+import { db } from '@/lib/db'
 import jwt from 'jsonwebtoken'
-
-async function getConnection() {
-  return await mysql.createConnection({
-    uri: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: true
-    }
-  })
-}
 
 function verifyToken(token: string) {
   try {
@@ -22,7 +13,6 @@ function verifyToken(token: string) {
 }
 
 export async function GET(request: NextRequest) {
-  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -43,10 +33,9 @@ export async function GET(request: NextRequest) {
     }
 
     const companyId = payload.id as number
-    connection = await getConnection()
 
-    // Buscar vagas da empresa
-    const [jobs] = await connection.execute(
+    // Buscar vagas da empresa usando o pool do db
+    const [jobs] = await db.query(
       'SELECT id, company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
       [companyId]
     ) as any
@@ -54,14 +43,14 @@ export async function GET(request: NextRequest) {
     // Para cada vaga, buscar as competências e benefícios
     const jobsWithDetails = await Promise.all(
       jobs.map(async (job: any) => {
-        const [competencies] = await connection.execute(
+        const [competencies] = await db.query(
           `SELECT c.id, c.nome FROM competencies c
            INNER JOIN job_competencies jc ON c.id = jc.competencia_id
            WHERE jc.job_id = ?`,
           [job.id]
         ) as any
 
-        const [benefits] = await connection.execute(
+        const [benefits] = await db.query(
           `SELECT b.id, b.nome, b.icone FROM benefits b
            INNER JOIN job_benefits jb ON b.id = jb.benefit_id
            WHERE jb.job_id = ?`,
@@ -93,16 +82,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erro ao buscar vagas:', error)
     return NextResponse.json(
-      { message: 'Erro ao buscar vagas' },
+      { message: 'Erro ao buscar vagas', error: String(error) },
       { status: 500 }
     )
-  } finally {
-    if (connection) await connection.end()
   }
 }
 
 export async function POST(request: NextRequest) {
-  let connection: any = null
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -148,13 +134,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    connection = await getConnection()
-
-    // Criar a vaga
+    // Criar a vaga usando o pool do db
     const location = `${city}, ${state}`
     console.log('Criando vaga com:', { companyId, title, location })
     
-    const [result] = await connection.execute(
+    const [result] = await db.query(
       `INSERT INTO job_postings (company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')`,
       [
@@ -179,7 +163,7 @@ export async function POST(request: NextRequest) {
       console.log('Adicionando', competenciesIds.length, 'competências')
       for (const competenciaId of competenciesIds) {
         try {
-          await connection.execute(
+          await db.query(
             'INSERT INTO job_competencies (job_id, competencia_id) VALUES (?, ?)',
             [jobId, competenciaId]
           )
@@ -194,7 +178,7 @@ export async function POST(request: NextRequest) {
       console.log('Adicionando', benefitsIds.length, 'benefícios')
       for (const benefitId of benefitsIds) {
         try {
-          await connection.execute(
+          await db.query(
             'INSERT INTO job_benefits (job_id, benefit_id) VALUES (?, ?)',
             [jobId, benefitId]
           )
@@ -215,7 +199,5 @@ export async function POST(request: NextRequest) {
       { message: 'Erro ao criar vaga', error: error?.message || 'Erro desconhecido' },
       { status: 500 }
     )
-  } finally {
-    if (connection) await connection.end()
   }
 }
