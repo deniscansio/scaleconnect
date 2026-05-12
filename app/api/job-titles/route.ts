@@ -17,7 +17,7 @@ export async function GET() {
 
     // Buscar cargos únicos da tabela candidate_profiles
     const [titles] = await connection.execute(
-      'SELECT DISTINCT cargo as titulo FROM candidate_profiles WHERE cargo IS NOT NULL ORDER BY cargo ASC'
+      'SELECT DISTINCT current_position as titulo FROM candidate_profiles WHERE current_position IS NOT NULL ORDER BY current_position ASC'
     ) as any
 
     // Transformar em array com IDs
