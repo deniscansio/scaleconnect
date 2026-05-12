@@ -38,6 +38,8 @@ export default function CandidateJobsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedJob, setSelectedJob] = useState<number | null>(null)
   const [appliedJobs, setAppliedJobs] = useState<number[]>([])
+  const [loadingApply, setLoadingApply] = useState<number | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Buscar vagas reais ao carregar a página
   useEffect(() => {
@@ -88,10 +90,52 @@ export default function CandidateJobsPage() {
     return 'Salário a combinar'
   }
 
-  const handleApply = (jobId: number) => {
-    if (!appliedJobs.includes(jobId)) {
-      setAppliedJobs([...appliedJobs, jobId])
-      // Aqui você pode adicionar lógica para salvar a candidatura no banco
+  const handleApply = async (jobId: number) => {
+    if (appliedJobs.includes(jobId)) {
+      setMessage({ type: 'error', text: 'Você já se candidatou para esta vaga' })
+      setTimeout(() => setMessage(null), 3000)
+      return
+    }
+
+    try {
+      setLoadingApply(jobId)
+      setMessage(null)
+
+      // Obter token do localStorage
+      const token = localStorage.getItem('scaleconnect_token')
+      
+      if (!token) {
+        setMessage({ type: 'error', text: 'Você precisa estar logado para se candidatar' })
+        setTimeout(() => setMessage(null), 3000)
+        return
+      }
+
+      // Chamar endpoint para salvar candidatura
+      const response = await fetch('/api/jobs/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ jobId })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAppliedJobs([...appliedJobs, jobId])
+        setMessage({ type: 'success', text: 'Candidatura realizada com sucesso!' })
+        setTimeout(() => setMessage(null), 3000)
+      } else {
+        const errorData = await response.json()
+        setMessage({ type: 'error', text: errorData.message || 'Erro ao se candidatar' })
+        setTimeout(() => setMessage(null), 3000)
+      }
+    } catch (error) {
+      console.error('Erro ao candidatar:', error)
+      setMessage({ type: 'error', text: 'Erro ao se candidatar. Tente novamente.' })
+      setTimeout(() => setMessage(null), 3000)
+    } finally {
+      setLoadingApply(null)
     }
   }
 
@@ -156,6 +200,13 @@ export default function CandidateJobsPage() {
               <p className="text-gray-600">Explore vagas alinhadas com sua jornada profissional e ganhe com sua carreira</p>
               <p className="text-sm text-gray-500 mt-2">Total de vagas: {jobs.length}</p>
             </div>
+
+            {/* Mensagem de sucesso/erro */}
+            {message && (
+              <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {message.text}
+              </div>
+            )}
 
             {jobs.length === 0 ? (
               <div className="bg-white rounded-lg p-8 text-center">
@@ -224,14 +275,12 @@ export default function CandidateJobsPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (!appliedJobs.includes(job.id)) {
-                            handleApply(job.id)
-                          }
+                          handleApply(job.id)
                         }}
-                        disabled={appliedJobs.includes(job.id)}
+                        disabled={appliedJobs.includes(job.id) || loadingApply === job.id}
                         className="flex-1 px-6 py-2 bg-candidate-secondary text-white rounded-lg font-semibold disabled:opacity-50 hover:bg-opacity-90 transition"
                       >
-                        {appliedJobs.includes(job.id) ? '✓ Candidatado' : 'Candidatar-se'}
+                        {loadingApply === job.id ? '⏳ Candidatando...' : appliedJobs.includes(job.id) ? '✓ Candidatado' : 'Candidatar-se'}
                       </button>
                     </div>
                   </div>
