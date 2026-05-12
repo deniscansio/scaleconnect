@@ -1,8 +1,55 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
 import mysql from 'mysql2/promise'
 import jwt from 'jsonwebtoken'
+
+// Função para parsear a URL de conexão do TiDB Cloud
+function parseConnectionString(connectionString: string) {
+  if (!connectionString) {
+    throw new Error('DATABASE_URL não está configurada');
+  }
+
+  const url = new URL(connectionString);
+  
+  const user = decodeURIComponent(url.username);
+  const password = decodeURIComponent(url.password);
+  const host = url.hostname;
+  const port = parseInt(url.port || '3306', 10);
+  const database = url.pathname.replace('/', '');
+
+  return {
+    host,
+    port,
+    user,
+    password,
+    database,
+  };
+}
+
+// Criar pool global (reutilizado em todas as requisições)
+let pool: mysql.Pool | null = null;
+
+function getPool() {
+  if (!pool) {
+    const connectionConfig = parseConnectionString(process.env.DATABASE_URL || '');
+    
+    pool = mysql.createPool({
+      host: connectionConfig.host,
+      port: connectionConfig.port,
+      user: connectionConfig.user,
+      password: connectionConfig.password,
+      database: connectionConfig.database,
+      connectionLimit: 10,
+      ssl: {
+        rejectUnauthorized: true
+      },
+      waitForConnections: true,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    });
+  }
+  return pool;
+}
 
 function verifyToken(token: string) {
   try {
@@ -36,8 +83,9 @@ export async function GET(request: NextRequest) {
 
     const companyId = payload.id as number
     
-    // Obter conexão do pool (sem criar nova)
-    connection = await (db as any)._.client.getConnection()
+    // Obter conexão do pool
+    const pool = getPool()
+    connection = await pool.getConnection()
 
     // Buscar vagas da empresa
     const [jobs] = await connection.execute(
@@ -143,7 +191,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter conexão do pool
-    connection = await (db as any)._.client.getConnection()
+    const pool = getPool()
+    connection = await pool.getConnection()
 
     // Criar a vaga
     const location = `${city}, ${state}`
