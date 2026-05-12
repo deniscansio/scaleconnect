@@ -16,6 +16,30 @@ interface Benefit {
   icone: string
 }
 
+interface Candidate {
+  id: number
+  userId: number
+  name: string
+  email: string
+  phone: string
+  currentPosition: string
+  currentCompany: string
+  yearsOfExperience: number
+  state: string
+  city: string
+  educationLevel: string
+  aboutMe: string
+  profilePhoto: string
+  linkedinUrl: string
+}
+
+interface Application {
+  applicationId: number
+  status: string
+  appliedAt: string
+  candidate: Candidate
+}
+
 interface Job {
   id: number
   title: string
@@ -49,6 +73,12 @@ export default function CompanyJobsPage() {
   const [jobTitleSearch, setJobTitleSearch] = useState('')
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([])
   const [totalCandidaturas, setTotalCandidaturas] = useState(0)
+  const [showApplicationsModal, setShowApplicationsModal] = useState(false)
+  const [selectedJobForApplications, setSelectedJobForApplications] = useState<number | null>(null)
+  const [applications, setApplications] = useState<Application[]>([])
+  const [applicationsLoading, setApplicationsLoading] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+  const [showCandidateModal, setShowCandidateModal] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -214,6 +244,37 @@ export default function CompanyJobsPage() {
 
     fetchApplicationsCount()
   }, [jobs])
+
+  const handleViewApplications = async (jobId: number) => {
+    try {
+      setApplicationsLoading(true)
+      const token = localStorage.getItem('scaleconnect_token')
+      if (!token) return
+
+      const response = await fetch(`/api/jobs/${jobId}/applications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setApplications(data.applications || [])
+        setSelectedJobForApplications(jobId)
+        setShowApplicationsModal(true)
+      } else {
+        alert('Erro ao buscar candidatos')
+      }
+    } catch (error) {
+      console.error('Erro ao buscar candidatos:', error)
+      alert('Erro ao buscar candidatos')
+    } finally {
+      setApplicationsLoading(false)
+    }
+  }
+
+  const handleViewCandidateProfile = (candidate: Candidate) => {
+    setSelectedCandidate(candidate)
+    setShowCandidateModal(true)
+  }
 
   const handleSubmitJob = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -452,49 +513,48 @@ export default function CompanyJobsPage() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: Gerente de Projetos"
-                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex: Desenvolvedor Full Stack"
                   />
                 </div>
 
-                {/* Cargo (Job Title) com Autocomplete */}
+                {/* Cargo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cargo *
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={jobTitleSearch || formData.jobTitle}
-                      onChange={(e) => {
-                        setJobTitleSearch(e.target.value)
-                        setFormData({ ...formData, jobTitle: e.target.value })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione um cargo"
-                      required
-                      autoComplete="off"
-                    />
-                    {jobTitleSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {jobTitleSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, jobTitle: suggestion })
-                              setJobTitleSearch(suggestion)
-                              setJobTitleSuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <input
+                    type="text"
+                    value={jobTitleSearch}
+                    onChange={(e) => setJobTitleSearch(e.target.value)}
+                    onBlur={() => {
+                      if (jobTitleSuggestions.length === 1) {
+                        setFormData({ ...formData, jobTitle: jobTitleSuggestions[0] })
+                        setJobTitleSearch('')
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Digite para buscar..."
+                  />
+                  {jobTitleSuggestions.length > 0 && (
+                    <ul className="border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                      {jobTitleSuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          onClick={() => {
+                            setFormData({ ...formData, jobTitle: suggestion })
+                            setJobTitleSearch('')
+                          }}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {formData.jobTitle && (
+                    <p className="text-sm text-green-600 mt-1">✓ {formData.jobTitle}</p>
+                  )}
                 </div>
 
                 {/* Nível */}
@@ -505,29 +565,28 @@ export default function CompanyJobsPage() {
                   <select
                     value={formData.level}
                     onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="JUNIOR">Júnior</option>
+                    <option value="JUNIOR">Junior</option>
                     <option value="PLENO">Pleno</option>
                     <option value="SENIOR">Sênior</option>
                   </select>
                 </div>
 
-                {/* Tipo de Vínculo */}
+                {/* Vínculo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Vínculo *
+                    Vínculo *
                   </label>
                   <select
                     value={formData.employmentType}
                     onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="CLT">CLT</option>
                     <option value="PJ">PJ</option>
-                    <option value="AUTONOMO">Autônomo</option>
+                    <option value="TEMPORARIO">Temporário</option>
+                    <option value="ESTAGIO">Estágio</option>
                   </select>
                 </div>
 
@@ -539,92 +598,12 @@ export default function CompanyJobsPage() {
                   <select
                     value={formData.workMode}
                     onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="PRESENCIAL">Presencial</option>
-                    <option value="HIBRIDA">Híbrida</option>
                     <option value="REMOTO">Remoto</option>
+                    <option value="HIBRIDO">Híbrido</option>
                   </select>
-                </div>
-
-                {/* Estado */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estado *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={stateSearch || formData.state}
-                      onChange={(e) => {
-                        setStateSearch(e.target.value)
-                        setFormData({ ...formData, state: e.target.value, city: '' })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione um estado"
-                      required
-                      autoComplete="off"
-                    />
-                    {stateSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {stateSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, state: suggestion, city: '' })
-                              setStateSearch(suggestion)
-                              setStateSuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Cidade */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cidade *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={citySearch || formData.city}
-                      onChange={(e) => {
-                        setCitySearch(e.target.value)
-                        setFormData({ ...formData, city: e.target.value })
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite ou selecione uma cidade"
-                      required
-                      autoComplete="off"
-                      disabled={!formData.state}
-                    />
-                    {citySuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {citySuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, city: suggestion })
-                              setCitySearch(suggestion)
-                              setCitySuggestions([])
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-200 last:border-b-0"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 {/* Salário Mínimo */}
@@ -636,7 +615,7 @@ export default function CompanyJobsPage() {
                     type="number"
                     value={formData.salaryMin}
                     onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Ex: 3000"
                   />
                 </div>
@@ -650,9 +629,88 @@ export default function CompanyJobsPage() {
                     type="number"
                     value={formData.salaryMax}
                     onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: 5000"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex: 6000"
                   />
+                </div>
+
+                {/* Estado */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Estado *
+                  </label>
+                  <input
+                    type="text"
+                    value={stateSearch}
+                    onChange={(e) => setStateSearch(e.target.value)}
+                    onBlur={() => {
+                      if (stateSuggestions.length === 1) {
+                        setFormData({ ...formData, state: stateSuggestions[0] })
+                        setStateSearch('')
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Digite para buscar..."
+                  />
+                  {stateSuggestions.length > 0 && (
+                    <ul className="border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                      {stateSuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          onClick={() => {
+                            setFormData({ ...formData, state: suggestion, city: '' })
+                            setStateSearch('')
+                          }}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {formData.state && (
+                    <p className="text-sm text-green-600 mt-1">✓ {formData.state}</p>
+                  )}
+                </div>
+
+                {/* Cidade */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cidade *
+                  </label>
+                  <input
+                    type="text"
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                    onBlur={() => {
+                      if (citySuggestions.length === 1) {
+                        setFormData({ ...formData, city: citySuggestions[0] })
+                        setCitySearch('')
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Digite para buscar..."
+                    disabled={!formData.state}
+                  />
+                  {citySuggestions.length > 0 && (
+                    <ul className="border border-gray-300 rounded-lg mt-1 max-h-40 overflow-y-auto">
+                      {citySuggestions.map((suggestion) => (
+                        <li
+                          key={suggestion}
+                          onClick={() => {
+                            setFormData({ ...formData, city: suggestion })
+                            setCitySearch('')
+                          }}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        >
+                          {suggestion}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {formData.city && (
+                    <p className="text-sm text-green-600 mt-1">✓ {formData.city}</p>
+                  )}
                 </div>
               </div>
 
@@ -664,17 +722,16 @@ export default function CompanyJobsPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Descreva a vaga, responsabilidades e requisitos"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={5}
-                  required
+                  placeholder="Descreva a vaga, responsabilidades, requisitos, etc..."
                 />
               </div>
 
               {/* Competências */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Competências Necessárias * (Mínimo 4)
+                  Competências Necessárias *
                 </label>
                 <button
                   type="button"
@@ -850,6 +907,13 @@ export default function CompanyJobsPage() {
 
                 <div className="flex gap-2">
                   <button
+                    onClick={() => handleViewApplications(job.id)}
+                    disabled={applicationsLoading}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50"
+                  >
+                    👥 Ver Candidatos
+                  </button>
+                  <button
                     onClick={() => handleCloseJob(job.id)}
                     className={`flex-1 font-bold py-2 px-4 rounded-lg text-white ${job.status === 'OPEN' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
                   >
@@ -866,6 +930,120 @@ export default function CompanyJobsPage() {
             ))
           )}
         </div>
+
+        {/* Modal de Candidatos */}
+        {showApplicationsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-96 overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">👥 Candidatos ({applications.length})</h3>
+                <button
+                  onClick={() => setShowApplicationsModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {applications.length === 0 ? (
+                <p className="text-gray-600">Nenhum candidato para esta vaga ainda.</p>
+              ) : (
+                <div className="space-y-4">
+                  {applications.map((app) => (
+                    <div key={app.applicationId} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900">{app.candidate.name}</h4>
+                          <p className="text-sm text-gray-600">{app.candidate.email}</p>
+                          <p className="text-sm text-gray-600">{app.candidate.currentPosition} em {app.candidate.currentCompany}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Candidatou-se em: {new Date(app.appliedAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            app.status === 'APPLIED' ? 'bg-blue-100 text-blue-800' :
+                            app.status === 'REVIEWING' ? 'bg-yellow-100 text-yellow-800' :
+                            app.status === 'INTERVIEW' ? 'bg-purple-100 text-purple-800' :
+                            app.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {app.status === 'APPLIED' ? 'Candidatado' :
+                             app.status === 'REVIEWING' ? 'Analisando' :
+                             app.status === 'INTERVIEW' ? 'Entrevista' :
+                             app.status === 'REJECTED' ? 'Rejeitado' :
+                             'Contratado'}
+                          </span>
+                          <button
+                            onClick={() => handleViewCandidateProfile(app.candidate)}
+                            className="block mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-sm"
+                          >
+                            Ver Perfil
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Perfil do Candidato */}
+        {showCandidateModal && selectedCandidate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-96 overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">👤 Perfil do Candidato</h3>
+                <button
+                  onClick={() => setShowCandidateModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <span className="font-semibold">Nome:</span> {selectedCandidate.name}
+                </div>
+                <div>
+                  <span className="font-semibold">Email:</span> {selectedCandidate.email}
+                </div>
+                <div>
+                  <span className="font-semibold">Telefone:</span> {selectedCandidate.phone || 'Não informado'}
+                </div>
+                <div>
+                  <span className="font-semibold">Cargo Atual:</span> {selectedCandidate.currentPosition || 'Não informado'}
+                </div>
+                <div>
+                  <span className="font-semibold">Empresa Atual:</span> {selectedCandidate.currentCompany || 'Não informado'}
+                </div>
+                <div>
+                  <span className="font-semibold">Anos de Experiência:</span> {selectedCandidate.yearsOfExperience || 0}
+                </div>
+                <div>
+                  <span className="font-semibold">Localização:</span> {selectedCandidate.city}, {selectedCandidate.state}
+                </div>
+                <div>
+                  <span className="font-semibold">Nível de Educação:</span> {selectedCandidate.educationLevel || 'Não informado'}
+                </div>
+                <div>
+                  <span className="font-semibold">Sobre:</span>
+                  <p className="text-gray-600 mt-2">{selectedCandidate.aboutMe || 'Não informado'}</p>
+                </div>
+                {selectedCandidate.linkedinUrl && (
+                  <div>
+                    <a href={selectedCandidate.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      🔗 LinkedIn
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
