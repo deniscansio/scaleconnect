@@ -191,10 +191,10 @@ export async function POST(request: NextRequest) {
       { message: 'Vaga criada com sucesso', jobId },
       { status: 201 }
     )
-  } catch (error) {
-    console.error('Erro ao criar vaga:', error)
+  } catch (error: any) {
+    console.error('Erro ao criar vaga:', error?.message || error)
     return NextResponse.json(
-      { message: 'Erro ao criar vaga' },
+      { message: 'Erro ao criar vaga', error: error?.message || 'Erro desconhecido' },
       { status: 500 }
     )
   } finally {
