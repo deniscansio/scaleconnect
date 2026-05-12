@@ -65,33 +65,89 @@ export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Token não fornecido' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyToken(token)
-    if (!payload || !payload.id) {
-      return NextResponse.json(
-        { message: 'Token inválido' },
-        { status: 401 }
-      )
-    }
-
-    const companyId = payload.id as number
     
+    // Obter parâmetros de filtro opcionais
+    const searchParams = request.nextUrl.searchParams
+    const state = searchParams.get('state')
+    const city = searchParams.get('city')
+    const level = searchParams.get('level')
+    const keyword = searchParams.get('keyword')
+
     // Obter conexão do pool
     const pool = getPool()
     connection = await pool.getConnection()
 
-    // Buscar vagas da empresa
-    const [jobs] = await connection.execute(
-      'SELECT id, company_id, title, job_title, description, level, salary_min, salary_max, location, employment_type, work_mode, status, created_at, updated_at FROM job_postings WHERE company_id = ?',
-      [companyId]
-    ) as any
+    let companyId: number | null = null
+    let isAuthenticated = false
+
+    // Verificar autenticação (opcional)
+    if (token) {
+      const payload = verifyToken(token)
+      if (payload && payload.id) {
+        companyId = payload.id as number
+        isAuthenticated = true
+      }
+    }
+
+    // Construir query base
+    let query = `
+      SELECT 
+        jp.id,
+        jp.company_id,
+        jp.title,
+        jp.description,
+        jp.level,
+        jp.salary_min,
+        jp.salary_max,
+        jp.location,
+        jp.employment_type,
+        jp.work_mode,
+        jp.status,
+        jp.created_at,
+        jp.updated_at,
+        u.full_name as company_name,
+        u.company_name as company_display_name
+      FROM job_postings jp
+      INNER JOIN users u ON jp.company_id = u.id
+      WHERE 1=1
+    `
+
+    const params: any[] = []
+
+    // Se autenticado, retorna APENAS vagas da empresa
+    // Se não autenticado, retorna TODAS as vagas abertas
+    if (isAuthenticated && companyId) {
+      query += ` AND jp.company_id = ?`
+      params.push(companyId)
+    } else {
+      query += ` AND jp.status = 'OPEN'`
+    }
+
+    // Adicionar filtros opcionais
+    if (state) {
+      query += ` AND jp.location LIKE ?`
+      params.push(`%${state}%`)
+    }
+
+    if (city) {
+      query += ` AND jp.location LIKE ?`
+      params.push(`%${city}%`)
+    }
+
+    if (level) {
+      query += ` AND jp.level = ?`
+      params.push(level)
+    }
+
+    if (keyword) {
+      query += ` AND (jp.title LIKE ? OR jp.description LIKE ?)`
+      params.push(`%${keyword}%`, `%${keyword}%`)
+    }
+
+    query += ` ORDER BY jp.created_at DESC`
+
+    // Executar query
+    const [jobs] = await connection.execute(query, params) as any
 
     // Para cada vaga, buscar as competências e benefícios
     const jobsWithDetails = await Promise.all(
@@ -113,8 +169,9 @@ export async function GET(request: NextRequest) {
         return {
           id: job.id,
           companyId: job.company_id,
+          companyName: job.company_display_name || job.company_name,
           title: job.title,
-          jobTitle: job.job_title,
+          jobTitle: job.title,
           description: job.description,
           level: job.level,
           salaryMin: job.salary_min,
